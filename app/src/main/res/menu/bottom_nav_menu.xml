@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/profile"
+        android:title="Profile"
+        app:showAsAction="always"
+        android:icon="@drawable/profile"/>
+
+    <item android:id="@+id/chatwithadmin"
+        android:title="Chat with admin"
+        app:showAsAction="always|withText"
+        android:icon="@drawable/chat"/>
+
+    <item android:id="@+id/stories"
+        android:title="Stories"
+        app:showAsAction="always"
+
+        android:icon="@drawable/stories"/>
+
+    <item android:id="@+id/rules"
+        android:title="Rules"
+        app:showAsAction="always"
+        android:icon="@drawable/rules"/>
+
+</menu>
