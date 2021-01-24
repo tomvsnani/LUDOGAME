@@ -10,4 +10,6 @@
     <color name="red">#ED2027</color>
     <color name="green">#05A24B</color>
     <color name="yellow">#FFDE05</color>
+    <color name="backgroundblack">#94000000</color>
+
 </resources>

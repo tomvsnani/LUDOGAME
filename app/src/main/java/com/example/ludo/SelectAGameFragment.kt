@@ -5,55 +5,57 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.res.ResourcesCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.ludo.databinding.FragmentSelectAGameBinding
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+class SelectAGameFragment : Fragment(R.layout.fragment_select_a_game) {
+    lateinit var binding: FragmentSelectAGameBinding
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        binding = FragmentSelectAGameBinding.bind(view)
+        (activity as MainActivity).binding.apply {
+            rechargelineartoolbar.visibility = View.VISIBLE
+            saleslineartoolbar.visibility = View.VISIBLE
+            bottomNav.visibility = View.VISIBLE
 
-/**
- * A simple [Fragment] subclass.
- * Use the [SelectAGameFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
-class SelectAGameFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
         }
+
+//        (activity as MainActivity).setUpFragmentsToolbarProperties(
+//            resources.getString(R.string.app_name),
+//            false,ResourcesCompat.getDrawable(resources,R.drawable.)
+//        )
+
+        binding.welcomerecycler.apply {
+            layoutManager = LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
+            adapter = WelcomeRecyclerAdapter()
+        }
+        super.onViewCreated(view, savedInstanceState)
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_select_a_game, container, false)
+    override fun onStart() {
+        binding.ludogamecardwrapper.setOnClickListener {
+            (activity as MainActivity).gameType = Constants.LUDOGAMETYPE
+            (activity as MainActivity).loadFragment(CoinsFragment())
+
+        }
+
+
+        binding.snakegamecardwrapper.setOnClickListener {
+            (activity as MainActivity).gameType = Constants.SNAKEGAMETYPE
+            (activity as MainActivity).loadFragment(CoinsFragment())
+        }
+        super.onStart()
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment SelectAGameFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            SelectAGameFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
-            }
+    override fun onStop() {
+        (activity as MainActivity).binding.apply {
+            rechargelineartoolbar.visibility = View.GONE
+            saleslineartoolbar.visibility = View.GONE
+            bottomNav.visibility = View.GONE
+        }
+        super.onStop()
     }
+
+
 }

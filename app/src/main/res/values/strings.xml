@@ -3,5 +3,74 @@
     <string name="openDrawer">open</string>
     <string name="closeDrawer">close</string>
     <!-- TODO: Remove or change this placeholder text -->
+    <string name="earnludo">EARN ADDA LUDO GAME RULES:-</string>
+    <string name="askhosttosharecode">(%1$s . %2$s open %3$s app create a code and share it above )</string>
+    <string name="rules">Rules: \n\n
+         1)  Dont\'t share wrong results if admin finds at the discretion he may block your ID .
+                                         \n
+                                         or
+                                    \n
+           Fine up to 100/-Rs . \n\n
+        2) BOTH WINNER AND LOOSER HAS TO SHARE RESULTS . if result is not shared by looser ,admin will checkwithin a time
+           and update a win to winner and fine of 10/-Rs for looser . \n\n
+
+        3) Winning screenshot has to be send only by winner .
+
+
+    </string>
+    <string name="numOfFilesChoosenString">no. of files choosen : %1$d</string>
+    <string name="codeCopiedAlertString">Your room code is copied successfully . Please go and copy it on ludo app</string>
+    <string name="gamewon">Congraulations, You won
+             the Game...!</string>
+    <string name="lostgame">Sorry , you Lost the game
+
+Better luck Next Time...!</string>
+    <string name="canceledgame">Sorry for the inconvenience . You cancelled the game .</string>
+
+
+    <string name="results_submitted_by_other_player">Other Player Submitted the results, You
+Won the Game</string>
+
+    <string name="results_submitted_waiting">
+        You Submitted your results, Waiting for
+other player to submit, If any delay by
+Oppenent Admin will check with in the
+Time and take an Oppropriate Action.
+    </string>
+
+
+    <string name="results_player_cancelled_admin_action">
+
+        One of the Player Cancel the Game, No
+Need to worry, Admin will take action with
+in the time and declare result.
+    </string>
+
+
+    <string name="results_other_player_submitted_wait_until_verify">
+        Another Player also Submitted  His
+Results as Win, Please Wait Until
+Verified
+    </string>
+
+    <string name="game_cancelled_refunded">
+
+        Game is Cancelled And Amount
+Refunded  Back to your Wallet
+    </string>
+    <string name="aboutjoining">HOST=WHO IS SHARING ROOM ID,\n PLAYER=WHO IS SHARING USERNAME. \n\n
+
+        USERNAME IS KEPT SECRETLY THAT CAN BE SEEN ONLY BY THE ADMIN AND PLAYER… HOST CAN SEE ONLY AFTER ENTERING INTO THE GAME…\n\n
+        AFTER ENTERING IN TO THE GAME IF ANY OF THE PLAYER LEFT HE IS LOST,EVEN LEFT HAPPENED BECAUSE OF NET ISSUE, LOW BATTERY, SUDDEN BACKUP,HANGING ,AUTOMATIC LEFT ETC…..</string>
+    <string name="aboutdispute">IF ANY DISPUTE ARRAISES BETWEEN TWO PLAYERS REGARDING GAME WIN, LOSS, CANCEL ..BASED ON THE SCREENSHOT SHARED BY THE WINNER,ADMIN WILL TAKE A ACTION AGAINST THAT DISPUTE...\n\n\n
+        ADMIN CAN VERIFY BY MATCHING CODE SHARED BY THE HOST AND USERNAME SHARED BY THE PLAYER...</string>
+
+    <string-array name="gameresultarray">
+        <item>SELECT YOUR RESULTS</item>
+        <item>I won the game</item>
+        <item>I Lost the game</item>
+        <item>Cancel the game</item>
+    </string-array>
+    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

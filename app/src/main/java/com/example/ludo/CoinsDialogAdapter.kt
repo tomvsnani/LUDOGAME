@@ -1,15 +1,12 @@
 package com.example.ludo
 
-import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.ludo.databinding.CoinsAlertDialogLayoutBinding
 import com.example.ludo.databinding.CoinsSelectDialogRowLayoutBinding
-import com.example.ludo.databinding.ProfileCoinsRecyclerRowLayoutBinding
 
 class CoinsDialogAdapter :
     ListAdapter<CoinsModelClass, CoinsDialogAdapter.CoinsViewHolder>(
@@ -26,7 +23,7 @@ class CoinsDialogAdapter :
 
             binding.radioButton.setOnClickListener {
                 selectedItemPosition = adapterPosition
-                mutableLiveDataSelectedCoins?.value=currentList[adapterPosition].coinValue
+                mutableLiveDataSelectedCoins?.value=currentList[adapterPosition].entryfee
                 notifyDataSetChanged()
             }
         }
@@ -50,7 +47,7 @@ class CoinsDialogAdapter :
         holder.binding.radioButton.isChecked =
             selectedItemPosition != -1 && holder.adapterPosition == selectedItemPosition
 
-        holder.binding.coinsvalueTextView.text = model.coinValue
+        holder.binding.coinsvalueTextView.text = model.entryfee
 
 
     }

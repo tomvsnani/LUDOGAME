@@ -2,7 +2,7 @@ package com.example.ludo
 
 import androidx.recyclerview.widget.DiffUtil
 
-data class CoinsModelClass(var id:String="",var coinValue:String=""){
+data class CoinsModelClass(var id:String="",var entryfee:String=""){
     companion object{
         var diff= object : DiffUtil.ItemCallback<CoinsModelClass>() {
             override fun areItemsTheSame(
@@ -16,7 +16,7 @@ data class CoinsModelClass(var id:String="",var coinValue:String=""){
                 oldItem: CoinsModelClass,
                 newItem: CoinsModelClass
             ): Boolean {
-               return  oldItem.coinValue==newItem.coinValue
+               return  oldItem.entryfee==newItem.entryfee
             }
         }
     }

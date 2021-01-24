@@ -6,7 +6,7 @@ data class UserProfileCoinsModelClass(
     var id: String = "",
     var name: String = "",
     var coins: String = "",
-    var isplaying: Boolean
+    var isplaying: Boolean=false
 ) {
 
     companion object {
