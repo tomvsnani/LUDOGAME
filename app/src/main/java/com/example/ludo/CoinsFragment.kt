@@ -118,9 +118,8 @@ class CoinsFragment : Fragment(R.layout.fragment_coins) {
                         ) {
                             if (response.isSuccessful) {
                                 if (response.body()?.status == "1") {
-                                   coinsAdapter.submitList(response.body()?.data)
-                                }
-                                else
+                                    coinsAdapter.submitList(response.body()?.data)
+                                } else
                                     (activity as MainActivity).showToast(response.body()?.message!!)
                             } else {
                                 (activity as MainActivity).showToast(response.toString())
@@ -277,8 +276,9 @@ class CoinsFragment : Fragment(R.layout.fragment_coins) {
 
                             var list: MutableList<GameDetailsModelClass> =
                                 (response.body()?.data?.let { list ->
-                                    list.filter {
-                                        if (it.host_id == (activity as MainActivity).getUserId()) {
+                                    list.filter {       // removing modelifit is host or player to add it
+                                                         // below and display it on top of list
+                                        if (isUserHostOrPlayer(it)) {
                                             hostModel = it
                                             return@filter false
                                         }
@@ -287,7 +287,10 @@ class CoinsFragment : Fragment(R.layout.fragment_coins) {
                                 } as MutableList<GameDetailsModelClass>?)!!
                             if (hostModel != null)
                                 list.add(0, hostModel!!)
-                            profilecoinsAdapter.submitList(list)
+                            profilecoinsAdapter.submitList(list.filter { it.game_status=="0" || isUserHostOrPlayer(
+                                it
+                            )   //filtering to display game only to host or user if
+                            })
 
 
                         } else {
@@ -303,5 +306,8 @@ class CoinsFragment : Fragment(R.layout.fragment_coins) {
             })
 
     }
+
+    private fun isUserHostOrPlayer(it: GameDetailsModelClass) =
+        (it.host_id == (activity as MainActivity).getUserId() || it.player_id == (activity as MainActivity).getUserId())
 }
 

@@ -8,7 +8,8 @@ data class GameDetailsModelClass(
     var entry_fee: String,
     var player_name: String,
     var game_status: String,
-    var host_name: String
+    var host_name: String,
+    var player_id:String
 
 ) {
     companion object {

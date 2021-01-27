@@ -1,5 +1,6 @@
 package com.example.ludo
 
+import GameMatchedPlayerDetails
 import okhttp3.MultipartBody
 import retrofit2.Call
 import retrofit2.http.*
@@ -37,7 +38,7 @@ interface RetrofitInterface {
     fun getGamesList(): Call<GameListResponseModel>
 
     @GET(Constants.COINS_API)
-    fun coinsapi():Call<CoinsResponseModelClass>
+    fun coinsapi(): Call<CoinsResponseModelClass>
 
     @FormUrlEncoded
     @POST(Constants.CANCEL_HOST_GAME_API)
@@ -45,5 +46,36 @@ interface RetrofitInterface {
         @Field("userid") userId: String,
         @Field("gameid") gameId: String
     ): Call<UserRegistrationResponseModel>
+
+    @POST(Constants.PLAYGAME_API)
+    @FormUrlEncoded
+    fun playerPlayClickApi(
+        @Field("playerid") userId: String,
+        @Field("id") gameId: String, @Field("playername") userName: String
+    ): Call<UserRegistrationResponseModel>
+
+    @POST(Constants.PLAYERS_DETAILS_AFTER_GAMEMATCH_API)
+    @FormUrlEncoded
+    fun playersGameMatchDetails(@Field("id") gameid: String): Call<GameMatchedPlayerDetails>
+
+    @POST(Constants.SUBMIT_GAME_CODE_API)
+    @FormUrlEncoded
+    fun submitGameCodeHost(
+        @Field("id") gameId: String,
+        @Field("ludocode") gameCode: String
+    ): Call<UserRegistrationResponseModel>
+
+
+    @FormUrlEncoded
+    @POST(Constants.GET_GAME_CODE_API)
+    fun getGameCodePlayer(@Field("id") gameid: String): Call<UserRegistrationResponseModel>
+
+    @Multipart
+    @POST(Constants.FINAL_GAME_RESULT)
+    fun resultsApi(
+        @Part("data") gameResultModelClassToSend: GameResultModelClassToSend,
+        @Part image: MultipartBody.Part
+    ):Call<GameResultModelClassResponse>
+
 
 }

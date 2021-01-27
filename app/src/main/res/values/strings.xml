@@ -73,4 +73,8 @@ Refunded  Back to your Wallet
     </string-array>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="player_user_name_request">Mr. Player pls share a LUDO
+GAME user name\n\n(OPEN LUDO KING APP EDIT
+USERNAME NAME AND ENTER
+IT BELOW)\n\n</string>
 </resources>

@@ -2,15 +2,18 @@ package com.example.ludo
 
 import android.app.Activity
 import android.graphics.Color
+import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import androidx.viewbinding.ViewBinding
 import com.example.ludo.databinding.CustomHostRowLayoutBinding
+import com.example.ludo.databinding.PlayerUsernameDialogLayoutBinding
 import com.example.ludo.databinding.ProfileCoinsRecyclerRowLayoutBinding
 import retrofit2.Call
 import retrofit2.Callback
@@ -28,15 +31,100 @@ class ProfileCoinsAdapter(var activity: Activity) :
 
 
         init {
-            (binding as ProfileCoinsRecyclerRowLayoutBinding)?.playbutton?.setOnClickListener {
-                (activity as MainActivity).isHost = false
-                (activity as MainActivity).loadFragment(GameMatchingFragment())
+            (binding)?.playbutton?.setOnClickListener {
+//                (activity as MainActivity).isHost = false
+                if (!isGameStarted(currentList[adapterPosition]))
+                    displayEnterUsernameDialogForPlayer()
+                else
+                {
+                    openGameMatchingFragment(currentList[adapterPosition].id,false)
+                }
+
 
             }
 
 
         }
 
+        private fun displayEnterUsernameDialogForPlayer() {
+
+            var alert = AlertDialog.Builder(binding.root.context).create()
+
+            var view = LayoutInflater.from(binding.root.context)
+
+                .inflate(R.layout.player_username_dialog_layout, null, false)
+
+            alert.setView(view)
+            var binding = PlayerUsernameDialogLayoutBinding.bind(view)
+
+            binding.submitButton?.setOnClickListener {
+
+                if (binding.usernameEdittext.text.isNotEmpty()) {
+
+                    if (currentList[adapterPosition].game_status == "0") {
+
+                        send_player_username_to_server(binding, alert)
+                    } else {
+                        (activity as MainActivity).showToast("Other Player has joined the Game ")
+                        alert?.dismiss()
+                    }
+                } else
+                    (activity as MainActivity).showToast("Enter your user name")
+            }
+
+            binding.cancelButton.setOnClickListener {
+                alert?.dismiss()
+            }
+
+            alert.window?.decorView?.rootView?.setBackgroundColor(Color.TRANSPARENT)
+
+//        alert?.window?.setLayout(
+//            resources.displayMetrics.widthPixels / 2,
+//            ViewGroup.LayoutParams.WRAP_CONTENT
+//        )
+
+            alert.show()
+
+
+        }
+
+    }
+
+    private fun ProfileCoinsViewHolder.send_player_username_to_server(
+        binding: PlayerUsernameDialogLayoutBinding,
+        alert: AlertDialog
+    ) {
+        (activity as MainActivity).retrofit?.playerPlayClickApi(
+            (activity as MainActivity).getUserId(),
+            currentList[adapterPosition].id,
+            binding.usernameEdittext.text.toString()
+        )?.enqueue(object : Callback<UserRegistrationResponseModel> {
+            override fun onFailure(
+                call: Call<UserRegistrationResponseModel>,
+                t: Throwable
+            ) {
+                (activity as MainActivity).apply {
+                    this.binding.progressbar.visibility = View.GONE
+                    showToast(t.toString())
+                }
+            }
+
+            override fun onResponse(
+                call: Call<UserRegistrationResponseModel>,
+                response: Response<UserRegistrationResponseModel>
+            ) {
+                if (response.isSuccessful) {
+                    if (response.body()?.status == "1") {
+                        getAllGamesList()
+
+                    } else
+                        (activity as MainActivity).showToast(response.body()?.message!!)
+                } else {
+                    (activity as MainActivity).showToast(response.toString())
+                }
+                alert?.dismiss()
+            }
+        })
     }
 
 
@@ -48,49 +136,75 @@ class ProfileCoinsAdapter(var activity: Activity) :
 
 
         init {
-            (binding as CustomHostRowLayoutBinding)?.cancelbutton?.setOnClickListener {
-                (activity as MainActivity).binding.progressbar.visibility = View.VISIBLE
-                (activity as MainActivity).retrofit?.cancelHostApi(
-                    (activity as MainActivity).getUserId(),
-                    currentList[adapterPosition].id
-                )?.enqueue(
-                    object : Callback<UserRegistrationResponseModel> {
-                        override fun onFailure(
-                            call: Call<UserRegistrationResponseModel>,
-                            t: Throwable
-                        ) {
-                            (activity as MainActivity).binding.progressbar.visibility = View.GONE
-                            (activity as MainActivity).showToast(t.toString())
-                        }
+            (binding)?.cancelbutton?.setOnClickListener {
+                if (!isGameStarted(currentList[adapterPosition])) {
+                    cancelTheHostedGame()
 
-                        override fun onResponse(
-                            call: Call<UserRegistrationResponseModel>,
-                            response: Response<UserRegistrationResponseModel>
-                        ) {
-                            if (response.isSuccessful) {
-                                if (response.body()?.status == "1") {
+                } else {
+                    openGameMatchingFragment(currentList[adapterPosition].id,true)
 
-                                    ((activity as MainActivity).supportFragmentManager.findFragmentById(
-                                        R.id.container
-                                    ) as CoinsFragment).getGamesList()
-                                } else {
-                                    (activity as MainActivity).showToast(response.body()?.message!!)
-                                }
+                }
 
-                            } else {
-                                (activity as MainActivity).showToast(response.toString())
-                            }
-                            (activity as MainActivity).showToast(response.toString())
-                            (activity as MainActivity).binding.progressbar.visibility = View.GONE
-                        }
-                    }
-                )
-                (activity as MainActivity).isHost = true
             }
 
 
         }
 
+    }
+
+     fun openGameMatchingFragment(id: String,isHost:Boolean) {
+        (activity as MainActivity).loadFragment(GameMatchingFragment().apply {
+            arguments = Bundle().apply {
+                putString(Constants.GAMEIDCONSTANT, id)
+                putBoolean(Constants.ISHOSTCONSTANT,isHost)
+            }
+        })
+    }
+
+    private fun CustomProfileCoinsViewHolder.cancelTheHostedGame() {
+        (activity as MainActivity).binding.progressbar.visibility = View.VISIBLE
+        (activity as MainActivity).retrofit?.cancelHostApi(
+            (activity as MainActivity).getUserId(),
+            currentList[adapterPosition].id
+        )?.enqueue(
+            object : Callback<UserRegistrationResponseModel> {
+                override fun onFailure(
+                    call: Call<UserRegistrationResponseModel>,
+                    t: Throwable
+                ) {
+                    (activity as MainActivity).binding.progressbar.visibility =
+                        View.GONE
+                    (activity as MainActivity).showToast(t.toString())
+                }
+
+                override fun onResponse(
+                    call: Call<UserRegistrationResponseModel>,
+                    response: Response<UserRegistrationResponseModel>
+                ) {
+                    if (response.isSuccessful) {
+                        if (response.body()?.status == "1") {
+
+                            getAllGamesList()
+                        } else {
+                            (activity as MainActivity).showToast(response.body()?.message!!)
+                        }
+
+                    } else {
+                        (activity as MainActivity).showToast(response.toString())
+                    }
+                    (activity as MainActivity).showToast(response.toString())
+                    (activity as MainActivity).binding.progressbar.visibility =
+                        View.GONE
+                }
+            }
+        )
+        (activity as MainActivity).isHost = true
+    }
+
+    private fun getAllGamesList() {
+        ((activity as MainActivity).supportFragmentManager.findFragmentById(
+            R.id.container
+        ) as CoinsFragment).getGamesList()
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -110,20 +224,50 @@ class ProfileCoinsAdapter(var activity: Activity) :
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         var model = currentList[position]
 
+        Log.d("modelll", model.toString())
+
 
         if (getItemViewType(position) == 0) {
             (holder as ProfileCoinsViewHolder).binding.apply {
+                if (isGameStarted(model)) {
+                    playbutton.text = "View Game"
+                    DrawableCompat.setTint(playbutton.background, Color.BLUE)
+
+                } else {
+                    playbutton.text = "Play"
+                    DrawableCompat.setTint(
+                        playbutton.background,
+                        ResourcesCompat.getColor(activity.resources, R.color.green, null)
+                    )
+                }
+
                 nametextview?.text = model.host_name
                 availablecoinsTextView?.text = model.entry_fee + " Coins"
             }
         } else {
             (holder as CustomProfileCoinsViewHolder).binding.apply {
+
+                if (isGameStarted(model)) {
+                    cancelbutton.text = "View Game"
+                    DrawableCompat.setTint(cancelbutton.background, Color.BLUE)
+
+                } else {
+                    cancelbutton.text = "Cancel"
+                    DrawableCompat.setTint(
+                        cancelbutton.background,
+                        ResourcesCompat.getColor(activity.resources, R.color.red, null)
+                    )
+                }
+
                 nametextview?.text = model.host_name
                 availablecoinsTextView?.text = model.entry_fee + " Coins"
             }
         }
 
     }
+
+    private fun isGameStarted(model: GameDetailsModelClass) =
+        model.game_status != "0" && (model.host_id == (activity as MainActivity).getUserId() || model.player_id == (activity as MainActivity).getUserId())
 
 
     override fun getItemViewType(position: Int): Int {
