@@ -1,21 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView
 
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    app:contentPadding="8dp"
-    app:cardBackgroundColor="@color/purple_200"
-    android:layout_marginHorizontal="16dp"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    app:cardCornerRadius="20dp">
 
 
 <TextView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:text="hello welcome to lud"
+    android:layout_margin="8dp"
     android:textSize="18sp"
+    android:padding="8dp"
     android:textColor="@color/white"
+    android:background="@drawable/circle_wrap_drawable"
     android:id="@+id/rowtextview"/>
-</com.google.android.material.card.MaterialCardView>

@@ -104,6 +104,9 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                                 usernameEditText.clearFocus()
                                 mobilenumberEditText.clearFocus()
                                 usernameEditText.isFocusableInTouchMode = false
+                                usernameEditText.isClickable=false
+                                mobilenumberEditText.isClickable=false
+
                                 mobilenumberEditText.isFocusableInTouchMode = false
                                 DrawableCompat.setTint(
                                     mobilenumberEditText.background,

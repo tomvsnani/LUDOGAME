@@ -1,5 +1,6 @@
 package com.example.ludo
 
+import GameMatchedPlayerDetailsModelClass
 import android.app.Activity
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
@@ -41,10 +42,17 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             Glide.with(requireContext()).load(it).transform(CircleCrop())
                 .into(binding.userprofileimageview)
             val preferences = activity?.getPreferences(Activity.MODE_PRIVATE)
+
+
+
             binding.updateProfileButton.setOnClickListener {
+
+                (activity as MainActivity).binding.progressbar.visibility = View.VISIBLE
                 val stream = ByteArrayOutputStream()
                 binding.userprofileimageview.drawToBitmap()
-                    .compress(Bitmap.CompressFormat.JPEG, 100, stream)
+                    .compress(Bitmap.CompressFormat.PNG, 100, stream)
+
+
                 (activity as MainActivity).retrofit?.updateProfile(
                     UserModelClass(
                         id = preferences?.getString(Constants.USERIDCONSTANT, "")!!,
@@ -53,32 +61,40 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
                     ),
                     MultipartBody.Part.createFormData(
                         "image",
-                        "profileimage"
+                        "profileimage.png"
                         ,
                         RequestBody.create(
                             MediaType.parse("image/*"),
                             stream.toByteArray()
                         )
                     )
-                )?.enqueue(object : Callback<UserRegistrationResponseModel> {
+                )?.enqueue(object : Callback<GameMatchedPlayerDetailsModelClass> {
                     override fun onFailure(
-                        call: Call<UserRegistrationResponseModel>,
+                        call: Call<GameMatchedPlayerDetailsModelClass>,
                         t: Throwable
                     ) {
                         (activity as MainActivity).showToast(t.toString())
+                        (activity as MainActivity).binding.progressbar.visibility = View.GONE
                     }
 
                     override fun onResponse(
-                        call: Call<UserRegistrationResponseModel>,
-                        response: Response<UserRegistrationResponseModel>
+                        call: Call<GameMatchedPlayerDetailsModelClass>,
+                        response: Response<GameMatchedPlayerDetailsModelClass>
                     ) {
                         if (response.isSuccessful) {
                             if (response.body()?.status == "1") {
                                 (activity as MainActivity).showToast("Profile Updated")
+
+                                binding.apply {
+                                    nameEditText.text = response.body()?.data!![0].username
+                                    mobileNumberEditText.text =
+                                        response.body()?.data!![0].user_phone
+                                }
                             }
                         } else {
                             (activity as MainActivity).showToast(response.toString())
                         }
+                        (activity as MainActivity).binding.progressbar.visibility = View.GONE
                     }
                 })
             }
@@ -99,16 +115,59 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         else {
             binding.changeprofilepiccardview.visibility = View.GONE
 
-            binding.apply {
+            (activity as MainActivity).binding.progressbar.visibility = View.VISIBLE
+            (activity as MainActivity).retrofit?.getProfileData((activity as MainActivity).getUserId())
+                ?.enqueue(
+                    object : Callback<GameMatchedPlayerDetailsModelClass> {
+                        override fun onFailure(
+                            call: Call<GameMatchedPlayerDetailsModelClass>,
+                            t: Throwable
+                        ) {
+                            (activity as MainActivity).showToast(t.toString())
+                            (activity as MainActivity).binding.progressbar.visibility = View.GONE
+                        }
 
-                DrawableCompat.setTint(genderEditText.background, Color.TRANSPARENT)
-                DrawableCompat.setTint(mobileNumberEditText.background, Color.TRANSPARENT)
-                DrawableCompat.setTint(nameEditText.background, Color.TRANSPARENT)
+                        override fun onResponse(
+                            call: Call<GameMatchedPlayerDetailsModelClass>,
+                            response: Response<GameMatchedPlayerDetailsModelClass>
+                        ) {
+                            if (response.isSuccessful) {
+                                if (response?.body()?.status == "1") {
+                                    binding.apply {
+                                        if (response.body()?.data != null && response.body()?.data?.isNotEmpty()!!) {
 
-                genderEditText.isClickable = false
-                mobileNumberEditText.isClickable = false
-                nameEditText.isClickable = false
-            }
+                                            nameEditText.text = response.body()?.data!![0].username
+                                            mobileNumberEditText.text =
+                                                response.body()?.data!![0].user_phone
+                                            Glide.with(context!!)
+                                                .load(Constants.BASEURL+response.body()?.data!![0].profile_pic)
+                                                .transform(CircleCrop())
+                                                .into(userprofileimageview)
+
+                                        }
+                                    }
+                                } else {
+                                    (activity as MainActivity).showToast(response.body()?.message!!)
+                                }
+                            } else {
+                                (activity as MainActivity).showToast(response.toString())
+                            }
+                            (activity as MainActivity).binding.progressbar.visibility = View.GONE
+                        }
+                    }
+                )
+
+
+//            binding.apply {
+//
+//                DrawableCompat.setTint(genderEditText.background, Color.TRANSPARENT)
+//                DrawableCompat.setTint(mobileNumberEditText.background, Color.TRANSPARENT)
+//                DrawableCompat.setTint(nameEditText.background, Color.TRANSPARENT)
+//
+//                genderEditText.isClickable = false
+//                mobileNumberEditText.isClickable = false
+//                nameEditText.isClickable = false
+//            }
 
 
         }
@@ -119,13 +178,13 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
                 binding.apply {
 
-                    DrawableCompat.setTint(genderEditText.background, Color.WHITE)
-                    DrawableCompat.setTint(mobileNumberEditText.background, Color.WHITE)
-                    DrawableCompat.setTint(nameEditText.background, Color.WHITE)
-
-                    genderEditText.isClickable = true
-                    mobileNumberEditText.isClickable = true
-                    nameEditText.isClickable = true
+//                    DrawableCompat.setTint(genderEditText.background, Color.WHITE)
+//                    DrawableCompat.setTint(mobileNumberEditText.background, Color.WHITE)
+//                    DrawableCompat.setTint(nameEditText.background, Color.WHITE)
+//
+//                    genderEditText.isClickable = true
+//                    mobileNumberEditText.isClickable = true
+//                    nameEditText.isClickable = true
 
                     binding.changeprofilepiccardview.visibility = View.VISIBLE
 
@@ -147,7 +206,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
                     changeprofilepiccardview.visibility = View.GONE
                     Glide.with(requireContext()).load(R.drawable.profile_updated_svg)
                         .into(userprofileimageview)
-//                    userprofileimageview.setImageDrawable(resources.getDrawable(R.drawable.profile_updated_svg,null))
+
                 }
                 isInEditMode = false
             }

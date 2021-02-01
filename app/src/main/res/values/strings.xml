@@ -4,7 +4,8 @@
     <string name="closeDrawer">close</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="earnludo">EARN ADDA LUDO GAME RULES:-</string>
-    <string name="askhosttosharecode">(%1$s . %2$s open %3$s app create a code and share it above )</string>
+    <string name="freshchat_file_provider_authority">com.example.ludo.provider</string>
+    <string name="askhosttosharecode">( %1$s open %2$s app create a code and share it above )</string>
     <string name="rules">Rules: \n\n
          1)  Dont\'t share wrong results if admin finds at the discretion he may block your ID .
                                          \n

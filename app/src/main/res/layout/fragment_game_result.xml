@@ -24,16 +24,29 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
         <!-- TODO: Update blank fragment layout -->
+        <ImageView
+            android:id="@+id/imageView8"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="16dp"
+            android:src="@drawable/djfksdj"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <TextView
             android:id="@+id/tablenumbertextview"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:text="Result Status"
             android:textColor="@color/white"
             android:textSize="24sp"
+            app:layout_constraintBottom_toBottomOf="@+id/imageView8"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintStart_toEndOf="@+id/imageView8"
+            app:layout_constraintTop_toTopOf="@+id/imageView8"
+            app:layout_constraintVertical_bias="0.13999999" />
 
         <View
             android:id="@+id/view2"
@@ -46,7 +59,7 @@
             android:layout_marginRight="32dp"
             android:background="#e0e0e0"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/imageView8"
             app:layout_constraintTop_toBottomOf="@+id/tablenumbertextview" />
 
 
@@ -54,39 +67,36 @@
             android:id="@+id/player1image"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:layout_marginTop="16dp"
             android:layout_marginEnd="32dp"
             android:layout_marginRight="32dp"
             android:background="@drawable/profile_circle_background"
             android:src="@drawable/ludogameicon"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/view2" />
+            app:layout_constraintTop_toTopOf="@+id/imageView6" />
 
 
         <ImageView
             android:id="@+id/player2image"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:layout_marginStart="32dp"
-            android:layout_marginLeft="32dp"
+            android:layout_marginStart="28dp"
+            android:layout_marginLeft="28dp"
             android:layout_marginTop="16dp"
             android:background="@drawable/profile_circle_background"
             android:padding="2dp"
             android:src="@drawable/ludobg"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/view2" />
-
+            app:layout_constraintTop_toBottomOf="@+id/imageView8" />
 
         <ImageView
             android:id="@+id/imageView6"
             android:layout_width="50dp"
             android:layout_height="50dp"
 
-            android:layout_marginTop="16dp"
             android:src="@drawable/vs"
             app:layout_constraintEnd_toStartOf="@+id/player1image"
             app:layout_constraintStart_toEndOf="@+id/player2image"
-            app:layout_constraintTop_toBottomOf="@+id/view2" />
+            app:layout_constraintTop_toTopOf="@+id/player2image" />
 
         <TextView
             android:id="@+id/hostnametextview"
@@ -118,6 +128,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
+            android:padding="16dp"
             android:background="@drawable/shadoweffect"
             android:gravity="center"
             android:orientation="vertical"
@@ -136,13 +147,13 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/roomcodeButton"
                 android:layout_width="wrap_content"
+                app:strokeColor="@color/white"
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
-                android:background="@color/purple_200"
                 android:text="code"
                 android:textColor="@color/white"
                 app:cornerRadius="20dp"
-                app:strokeWidth="1dp" />
+                app:strokeWidth="2dp" />
 
 
             <TextView
@@ -151,6 +162,7 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
                 android:text="ROOM CODE"
+                android:textStyle="bold"
                 android:textColor="@color/white"
                 android:textSize="18sp" />
 

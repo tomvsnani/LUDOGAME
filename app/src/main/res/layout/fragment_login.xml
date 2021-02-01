@@ -7,6 +7,15 @@
     android:padding="16dp"
     tools:context=".LoginFragment">
 
+    <ImageView
+        android:id="@+id/imageView9"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="16dp"
+        android:src="@drawable/ludoicon"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/textView18"
@@ -59,12 +68,12 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="8dp"
         android:layout_marginRight="8dp"
-        android:text="OTP LOGIN"
+        android:text="Hi Welcome To EARNADDA"
         android:textColor="@color/white"
         android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/imageView9" />
 
     <com.chaos.view.PinView
         android:id="@+id/pinView"
@@ -83,21 +92,21 @@
         android:textColor="@color/white"
         android:textSize="18sp"
         android:textStyle="bold"
+        android:visibility="gone"
         app:cursorWidth="2dp"
         app:itemCount="4"
-        android:visibility="gone"
         app:itemHeight="48dp"
         app:itemRadius="10dp"
         app:itemSpacing="10dp"
 
         app:itemWidth="48dp"
 
-        app:lineWidth="2dp"
-        app:viewType="rectangle"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/mobilenumberEditText"
-        app:lineColor="@color/white" />
+        app:lineColor="@color/white"
+        app:lineWidth="2dp"
+        app:viewType="rectangle" />
 
     <Button
         android:id="@+id/sednooverifyotp_button"

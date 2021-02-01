@@ -1,28 +1,51 @@
 package com.example.ludo
 
+import GameMatchedPlayerDetailsModelClass
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.graphics.Color
 import android.graphics.drawable.Drawable
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.MutableLiveData
 import com.bumptech.glide.Glide
 import com.example.ludo.databinding.ActivityMainBinding
 import com.example.ludo.databinding.AlertDialogLayoutBinding
+import com.freshchat.consumer.sdk.Freshchat
+import com.freshchat.consumer.sdk.FreshchatConfig
+import okhttp3.Interceptor
+import okhttp3.OkHttpClient
+import okhttp3.ResponseBody
+import org.json.JSONArray
+import org.json.JSONException
+import org.json.JSONObject
+import org.json.JSONTokener
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : AppCompatActivity() {
     lateinit var binding: ActivityMainBinding
     lateinit var gameType: String
+    var gameResultModel: GameResultModelClass? = null
+    var isGamesultSubmitted = false
+    var gameFeeMutableList: MutableLiveData<String> = MutableLiveData()
+    var profileDetailsLiveData: MutableLiveData<String> = MutableLiveData()
+
+
+    var gameDetailsLiveData: MutableLiveData<List<Data>> = MutableLiveData()
 
     @JvmField
     var retrofit: RetrofitInterface? = null
@@ -38,6 +61,7 @@ class MainActivity : AppCompatActivity() {
         retrofit = getRetrofit()
         setContentView(binding.root)
 
+        getUserCoins()
 
         if (getPreferences(Activity.MODE_PRIVATE).getString(Constants.USERIDCONSTANT, "")
                 .isNullOrEmpty()
@@ -45,7 +69,7 @@ class MainActivity : AppCompatActivity() {
 
             loadFragment(LoginFragment(), true)
         else
-            loadFragment(SelectAGameFragment(), true,"home")
+            loadFragment(SelectAGameFragment(), true, "home")
 
         binding.navigationView.setNavigationItemSelectedListener {
             when (it.itemId) {
@@ -58,8 +82,9 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.logout -> {
                     getPreferences(Activity.MODE_PRIVATE).edit().clear().apply()
-
+                    loadFragment(LoginFragment())
                 }
+
             }
             if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
                 drawerLayout.closeDrawer(GravityCompat.START)
@@ -67,7 +92,12 @@ class MainActivity : AppCompatActivity() {
             return@setNavigationItemSelectedListener true
         }
 
-
+        val config = FreshchatConfig(
+            "5abd7a5e-e73d-4087-8f61-e4b8c55011d3",
+            "0f5d7ac8-467a-4475-9403-043f7f092c5a"
+        )
+        config.setDomain("msdk.in.freshchat.com")
+        Freshchat.getInstance(applicationContext).init(config)
 
         setUpToolBar()
 
@@ -76,6 +106,9 @@ class MainActivity : AppCompatActivity() {
             when (it.itemId) {
                 R.id.profile -> loadFragment(ProfileFragment(), true)
                 R.id.rules -> loadFragment(RulesFragment(), true)
+                R.id.chatwithadmin -> Freshchat.showConversations(getApplicationContext());
+                R.id.stories->loadFragment(StoriesFragment(),true)
+
             }
             return@setOnNavigationItemSelectedListener true
         }
@@ -99,7 +132,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun loadFragment(fragment: Fragment, addToBackStack: Boolean = true,backstackname:String?=null) {
+    fun loadFragment(
+        fragment: Fragment,
+        addToBackStack: Boolean = true,
+        backstackname: String? = null
+    ) {
 
         if (supportFragmentManager.fragments.size > 0)
 
@@ -109,7 +146,7 @@ class MainActivity : AppCompatActivity() {
                     break
 
                 } else {
-                    beginFrgmentTransaction(true, fragment,backstackname)
+                    beginFrgmentTransaction(true, fragment, backstackname)
                     break
                 }
             }
@@ -175,7 +212,7 @@ class MainActivity : AppCompatActivity() {
     fun setUpFragmentsToolbarProperties(
         toolbarText: String,
         isDrawerLocked: Boolean = false,
-      drawerIcon: Drawable? = ResourcesCompat.getDrawable(
+        drawerIcon: Drawable? = ResourcesCompat.getDrawable(
             resources,
             R.drawable.ic_hamburger,
             null
@@ -188,7 +225,7 @@ class MainActivity : AppCompatActivity() {
                 binding.drawerlayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
             setToolBarText(toolbarText)
 
-            if(drawerIcon==null)
+            if (drawerIcon == null)
                 supportActionBar?.setDisplayHomeAsUpEnabled(false)
             else {
                 supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -218,9 +255,7 @@ class MainActivity : AppCompatActivity() {
         return UserModelClass()
     }
 
-    fun getOpponentUserData(): UserModelClass {
-        return UserModelClass("2", "Raghu", "500")
-    }
+
 
     fun displayGeneralAlertDialog(text: String = "", src: Int = 0, type: String = "") {
         var alert = AlertDialog.Builder(this).create()
@@ -243,6 +278,26 @@ class MainActivity : AppCompatActivity() {
 
     private fun getRetrofit(): RetrofitInterface {
         return Retrofit.Builder().let {
+            it.client(
+                OkHttpClient.Builder().addInterceptor(object : Interceptor {
+                    override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
+                        val request = chain.request()
+
+                        val response: okhttp3.Response = chain.proceed(request)
+                        val rawJson: String = response.body()?.string()!!
+                        Log.d("interceptor", rawJson)
+
+
+                        // Re-create the response before returning it because body can be read only once
+
+                        // Re-create the response before returning it because body can be read only once
+                        return response.newBuilder()
+                            .body(ResponseBody.create(response.body()?.contentType(), rawJson))
+                            .build()
+                    }
+                }).build()
+
+            )
             it.addConverterFactory(GsonConverterFactory.create())
             it.baseUrl(Constants.BASEURL)
             it.build().create(RetrofitInterface::class.java)
@@ -250,7 +305,124 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+    fun getPlayersDetails(gameId: String?) {
+        if (gameType == Constants.LUDOGAMETYPE)
+            getLudoPlayerDetails(gameId)
+        else
+            getSnakePlayerDetails(gameId)
+    }
+
+    private fun getLudoPlayerDetails(gameId: String?) {
+        binding.progressbar.visibility = View.VISIBLE
+        retrofit?.playersGameMatchDetails(gameId!!)?.enqueue(
+            object : Callback<GameMatchedPlayerDetailsModelClass> {
+                override fun onFailure(
+                    call: Call<GameMatchedPlayerDetailsModelClass>,
+                    t: Throwable
+                ) {
+                    showToast(t.toString())
+                    binding.progressbar.visibility = View.GONE
+                }
+
+                override fun onResponse(
+                    call: Call<GameMatchedPlayerDetailsModelClass>,
+                    response: retrofit2.Response<GameMatchedPlayerDetailsModelClass>
+                ) {
+                    if (response.isSuccessful) {
+                        if (response.body()?.status == "1") {
+                            //  binding.roomcodeedittext.setText("helloomg")
+                            gameDetailsLiveData.value = response.body()?.data
+                            gameFeeMutableList.value = response.body()?.entryfee
+                        } else {
+                            showToast(response.body()?.message!!)
+                        }
+                    } else
+                        showToast(response.toString())
+                    binding.progressbar.visibility = View.GONE
+                }
+            }
+        )
+    }
 
 
+    fun getUserCoins(){
+       binding.progressbar.visibility=View.VISIBLE
+     retrofit?.getProfileData(getUserId())?.enqueue(
+            object : Callback<GameMatchedPlayerDetailsModelClass> {
+                override fun onFailure(
+                    call: Call<GameMatchedPlayerDetailsModelClass>,
+                    t: Throwable
+                ) {
+                    showToast(t.toString())
+                    binding.progressbar.visibility=View.GONE
+                }
+
+                override fun onResponse(
+                    call: Call<GameMatchedPlayerDetailsModelClass>,
+                    response: Response<GameMatchedPlayerDetailsModelClass>
+                ) {
+                    if(response.isSuccessful){
+                        if(response?.body()?.status=="1"){
+                            binding.apply {
+                                if(response.body()?.data!=null &&   response.body()?.data?.isNotEmpty()!!) {
+
+
+                                   profileDetailsLiveData.value=response.body()?.data!![0].wallet
+                                }
+                            }
+                        }
+                        else{
+                           showToast(response.body()?.message!!)
+                        }
+                    }
+                    else{
+                        showToast(response.toString())
+                    }
+                    binding.progressbar.visibility=View.GONE
+                }
+            }
+        )
+    }
+
+
+    private fun getSnakePlayerDetails(gameId: String?) {
+        binding.progressbar.visibility = View.VISIBLE
+        retrofit?.playersGameMatchDetails_snake(gameId!!)?.enqueue(
+            object : Callback<GameMatchedPlayerDetailsModelClass> {
+                override fun onFailure(
+                    call: Call<GameMatchedPlayerDetailsModelClass>,
+                    t: Throwable
+                ) {
+                    showToast(t.toString())
+                    binding.progressbar.visibility = View.GONE
+                }
+
+                override fun onResponse(
+                    call: Call<GameMatchedPlayerDetailsModelClass>,
+                    response: retrofit2.Response<GameMatchedPlayerDetailsModelClass>
+                ) {
+                    if (response.isSuccessful) {
+                        if (response.body()?.status == "1") {
+                            //  binding.roomcodeedittext.setText("helloomg")
+                            gameFeeMutableList.value = response.body()?.entryfee
+                            gameDetailsLiveData.value = response.body()?.data
+                        } else {
+                            showToast(response.body()?.message!!)
+                        }
+                    } else
+                        showToast(response.toString())
+                    binding.progressbar.visibility = View.GONE
+                }
+            }
+        )
+    }
+
+
+    override fun onBackPressed() {
+        if (supportFragmentManager.findFragmentById(R.id.container) is SelectAGameFragment)
+            finish()
+        else
+            super.onBackPressed()
+    }
 
 }

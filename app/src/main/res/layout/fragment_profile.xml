@@ -99,6 +99,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
+                android:visibility="gone"
                 android:text="Gender"
                 android:textColor="@color/white"
                 android:textSize="18sp"
@@ -150,7 +151,7 @@
                 app:layout_constraintEnd_toEndOf="@+id/textView15"
                 app:layout_constraintTop_toTopOf="@+id/textView13" />
 
-            <EditText
+            <TextView
                 android:id="@+id/nameEditText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -168,11 +169,12 @@
                 app:layout_constraintStart_toEndOf="@+id/textView14"
                 app:layout_constraintTop_toTopOf="@+id/textView14" />
 
-            <EditText
+            <TextView
                 android:id="@+id/genderEditText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
+                android:visibility="gone"
                 android:text="TextView"
                 android:textColor="@color/white"
                 android:textSize="18sp"
@@ -184,7 +186,7 @@
                 app:layout_constraintStart_toStartOf="@+id/nameEditText"
                 app:layout_constraintTop_toTopOf="@+id/textView15" />
 
-            <EditText
+            <TextView
                 android:id="@+id/mobileNumberEditText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"

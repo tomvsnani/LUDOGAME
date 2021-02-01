@@ -29,7 +29,7 @@
                 android:layout_weight="1"
                 android:text="50 Coins"
                 android:textColor="@color/white"
-                android:textSize="18sp" />
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/nametextview"
@@ -38,7 +38,7 @@
                 android:layout_weight="1"
                 android:text="Rebba"
                 android:textColor="@color/white"
-                android:textSize="18sp" />
+                android:textSize="16sp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/playbutton"

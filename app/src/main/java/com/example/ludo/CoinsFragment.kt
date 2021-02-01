@@ -2,29 +2,22 @@ package com.example.ludo
 
 import android.app.Activity
 import android.app.AlertDialog
-import android.content.res.Resources
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.res.ResourcesCompat
-import androidx.core.view.marginBottom
-import androidx.core.view.setPadding
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ludo.databinding.CoinsAlertDialogLayoutBinding
 import com.example.ludo.databinding.FragmentCoinsBinding
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.util.*
 
 
 class CoinsFragment : Fragment(R.layout.fragment_coins) {
@@ -32,7 +25,7 @@ class CoinsFragment : Fragment(R.layout.fragment_coins) {
     lateinit var binding: FragmentCoinsBinding
     var selectedCoins = 0
     var availableCoins = 0
-    var myNmae = ""
+    var gameType = ""
     private lateinit var profilecoinsAdapter: ProfileCoinsAdapter
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -40,6 +33,13 @@ class CoinsFragment : Fragment(R.layout.fragment_coins) {
 
 
             binding = FragmentCoinsBinding.bind(view)
+
+            gameType = arguments?.getString("type", "")!!
+            (activity as MainActivity).profileDetailsLiveData.observe(viewLifecycleOwner, Observer {
+                binding.mycoinstextview.text = it
+                availableCoins = it.toInt()
+            })
+
             if ((activity as MainActivity).gameType == Constants.SNAKEGAMETYPE)
                 (activity as MainActivity).binding.root.background =
                     ResourcesCompat.getDrawable(resources, R.drawable.snakebg, null)
@@ -47,13 +47,12 @@ class CoinsFragment : Fragment(R.layout.fragment_coins) {
                 (activity as MainActivity).binding.root.background =
                     ResourcesCompat.getDrawable(resources, R.drawable.ludobg, null)
 
-            myNmae = (activity as MainActivity).getUserData().name
 
             availableCoins = (activity as MainActivity).getUserData().coins.toInt()
 
             profilecoinsAdapter = ProfileCoinsAdapter(requireActivity())
 
-            binding.mycoinstextview.text = availableCoins.toString()
+
 
 
 
@@ -62,83 +61,14 @@ class CoinsFragment : Fragment(R.layout.fragment_coins) {
                 this.adapter = profilecoinsAdapter
 
             }
-
-            getGamesList()
+            if (gameType == Constants.LUDOGAMETYPE)
+                getLudoGamesList()
+            else
+                getSnakeGameList()
 
 
             binding.selectcoinsbutton.setOnClickListener {
-                var dialog = AlertDialog.Builder(context).create()
-                var view1 = dialog.layoutInflater.inflate(
-                    R.layout.coins_alert_dialog_layout,
-                    null,
-                    false
-                )
-                dialog.setView(
-                    view1
-
-                )
-                var binding = CoinsAlertDialogLayoutBinding.bind(view1)
-
-                var livedataListenerForSelectedCoin = MutableLiveData<String>()
-                livedataListenerForSelectedCoin.observe(viewLifecycleOwner,
-                    Observer<String> {
-                        this.binding.apply {
-                            cardView.setCardBackgroundColor(resources.getColor(R.color.purple_200))
-                            selectcoinsbutton.text = it + " Coins"
-                            selectedCoins = it.toInt()
-                        }
-
-                    })
-                var coinsAdapter = CoinsDialogAdapter()
-                binding.selectcoinbutton.setOnClickListener {
-
-                    dialog.dismiss()
-                }
-                binding.coinsselectrecycler.apply {
-
-                    coinsAdapter.setLiveDataObserver(livedataListenerForSelectedCoin)
-                    layoutManager = LinearLayoutManager(context)
-                    this.adapter = coinsAdapter
-
-
-                }
-
-                (activity as MainActivity).retrofit?.coinsapi()
-                    ?.enqueue(object : Callback<CoinsResponseModelClass> {
-                        override fun onFailure(call: Call<CoinsResponseModelClass>, t: Throwable) {
-                            (activity as MainActivity).apply {
-                                showToast(t.toString())
-                                this.binding.progressbar.visibility = View.GONE
-                            }
-                        }
-
-                        override fun onResponse(
-                            call: Call<CoinsResponseModelClass>,
-                            response: Response<CoinsResponseModelClass>
-                        ) {
-                            if (response.isSuccessful) {
-                                if (response.body()?.status == "1") {
-                                    coinsAdapter.submitList(response.body()?.data)
-                                } else
-                                    (activity as MainActivity).showToast(response.body()?.message!!)
-                            } else {
-                                (activity as MainActivity).showToast(response.toString())
-                            }
-                        }
-                    })
-
-                dialog.window?.decorView?.rootView?.apply {
-                    setBackgroundColor(Color.TRANSPARENT)
-
-
-                    viewTreeObserver.addOnGlobalLayoutListener {
-
-
-                    }
-                }
-
-
-                dialog.show()
+                createAlertDialogForCoins()
             }
 
 
@@ -147,6 +77,82 @@ class CoinsFragment : Fragment(R.layout.fragment_coins) {
         } catch (e: Exception) {
             Log.d("exceptionincoinsfr", e.toString())
         }
+    }
+
+    private fun createAlertDialogForCoins() {
+        var dialog = AlertDialog.Builder(context).create()
+        var view1 = dialog.layoutInflater.inflate(
+            R.layout.coins_alert_dialog_layout,
+            null,
+            false
+        )
+        dialog.setView(
+            view1
+
+        )
+        var binding = CoinsAlertDialogLayoutBinding.bind(view1)
+
+        var livedataListenerForSelectedCoin = MutableLiveData<String>()
+        livedataListenerForSelectedCoin.observe(viewLifecycleOwner,
+            Observer<String> {
+                this.binding.apply {
+                    cardView.setCardBackgroundColor(resources.getColor(R.color.purple_200))
+                    selectcoinsbutton.text = it + " Coins"
+                    selectedCoins = it.toInt()
+                }
+
+            })
+        var coinsAdapter = CoinsDialogAdapter()
+        binding.selectcoinbutton.setOnClickListener {
+
+            dialog.dismiss()
+        }
+        binding.coinsselectrecycler.apply {
+
+            coinsAdapter.setLiveDataObserver(livedataListenerForSelectedCoin)
+            layoutManager = LinearLayoutManager(context)
+            this.adapter = coinsAdapter
+
+
+        }
+
+        (activity as MainActivity).retrofit?.coinsapi()
+            ?.enqueue(object : Callback<CoinsResponseModelClass> {
+                override fun onFailure(call: Call<CoinsResponseModelClass>, t: Throwable) {
+                    (activity as MainActivity).apply {
+                        showToast(t.toString())
+                        this.binding.progressbar.visibility = View.GONE
+                    }
+                }
+
+                override fun onResponse(
+                    call: Call<CoinsResponseModelClass>,
+                    response: Response<CoinsResponseModelClass>
+                ) {
+                    if (response.isSuccessful) {
+                        if (response.body()?.status == "1") {
+                            if (response.body()?.data != null && response.body()?.data?.isNotEmpty()!!)
+                                coinsAdapter.submitList(response.body()?.data)
+                        } else
+                            (activity as MainActivity).showToast(response.body()?.message!!)
+                    } else {
+                        (activity as MainActivity).showToast(response.toString())
+                    }
+                }
+            })
+
+        dialog.window?.decorView?.rootView?.apply {
+            setBackgroundColor(Color.TRANSPARENT)
+
+
+            viewTreeObserver.addOnGlobalLayoutListener {
+
+
+            }
+        }
+
+
+        dialog.show()
     }
 
 
@@ -219,45 +225,77 @@ class CoinsFragment : Fragment(R.layout.fragment_coins) {
     }
 
     private fun hostAGame() {
+
         (activity as MainActivity).binding.progressbar.visibility = View.VISIBLE
         val id = activity?.getPreferences(Activity.MODE_PRIVATE)
             ?.getString(Constants.USERIDCONSTANT, "")!!
         val name = activity?.getPreferences(Activity.MODE_PRIVATE)
             ?.getString(Constants.USERNAMECONSTANT, "")!!
 
-
-        (activity as MainActivity).retrofit?.hostAGAme(
-            id, name, selectedCoins.toString()
-        )?.enqueue(object : Callback<UserRegistrationResponseModel> {
-            override fun onFailure(
-                call: Call<UserRegistrationResponseModel>,
-                t: Throwable
-            ) {
-                (activity as MainActivity).binding.progressbar.visibility = View.GONE
-                (activity as MainActivity).showToast(t.toString())
-            }
-
-            override fun onResponse(
-                call: Call<UserRegistrationResponseModel>,
-                response: Response<UserRegistrationResponseModel>
-            ) {
-                if (response.isSuccessful) {
-                    if (response.body()?.status == "1") {
-                        (activity as MainActivity).showToast("Game Hosted Successfully . Please wait till other player joins")
-                        getGamesList()
-                    } else {
-                        (activity as MainActivity).showToast(response.body()?.message!!)
-                    }
-                } else {
-                    (activity as MainActivity).showToast(response.toString())
-
-                }
-                (activity as MainActivity).binding.progressbar.visibility = View.GONE
-            }
-        })
+        if ((activity as MainActivity).gameType == Constants.LUDOGAMETYPE)
+            hostLudoGame(id, name)
+        else {
+            hostSnakeGame(id, name)
+        }
     }
 
-    fun getGamesList() {
+
+    fun getSnakeGameList() {
+
+        (activity as MainActivity).binding.progressbar.visibility = View.VISIBLE
+        (activity as MainActivity).retrofit?.getGamesList_snake()
+            ?.enqueue(object : Callback<GameListResponseModel> {
+                override fun onFailure(call: Call<GameListResponseModel>, t: Throwable) {
+                    (activity as MainActivity).showToast(t.toString())
+                    (activity as MainActivity).binding.progressbar.visibility = View.GONE
+                }
+
+                override fun onResponse(
+                    call: Call<GameListResponseModel>,
+                    response: Response<GameListResponseModel>
+                ) {
+                    if (response.isSuccessful) {
+                        if (response.body()?.status == "1") {
+                            var hostModel: GameDetailsModelClass? = null
+                            var gameHostedOrProgressList = mutableListOf<GameDetailsModelClass>()
+                            var list: MutableList<GameDetailsModelClass>? =
+                                (response.body()?.data?.let { list ->
+                                    list.filter {       // removing modelifit is host or player to add it
+                                        // below and display it on top of list
+                                        if (isUserHostOrPlayer(it)) {
+                                            gameHostedOrProgressList.add(it)
+
+                                            return@filter false
+                                        }
+                                        return@filter true
+                                    }
+                                } as MutableList<GameDetailsModelClass>?)!!
+                            for (i in gameHostedOrProgressList) {
+                                list?.add(0, i)
+                            }
+                            profilecoinsAdapter.submitList(list?.filter {
+                                it.game_status == "0" || isUserHostOrPlayer(
+                                    it
+                                )   //filtering to display game only to host or user if
+                            })
+
+
+                        } else {
+                            if ((response.body()?.data == null)) {
+                                (activity as MainActivity).showToast("No Games Available")
+                            }
+                        }
+                    } else {
+
+                    }
+                    (activity as MainActivity).binding.progressbar.visibility = View.GONE
+                }
+            })
+
+    }
+
+
+    fun getLudoGamesList() {
         (activity as MainActivity).binding.progressbar.visibility = View.VISIBLE
         (activity as MainActivity).retrofit?.getGamesList()
             ?.enqueue(object : Callback<GameListResponseModel> {
@@ -273,23 +311,28 @@ class CoinsFragment : Fragment(R.layout.fragment_coins) {
                     if (response.isSuccessful) {
                         if (response.body()?.status == "1") {
                             var hostModel: GameDetailsModelClass? = null
-
-                            var list: MutableList<GameDetailsModelClass> =
+                            var gameHostedOrProgressList = mutableListOf<GameDetailsModelClass>()
+                            var list: MutableList<GameDetailsModelClass>? =
                                 (response.body()?.data?.let { list ->
                                     list.filter {       // removing modelifit is host or player to add it
-                                                         // below and display it on top of list
+                                        // below and display it on top of list
                                         if (isUserHostOrPlayer(it)) {
-                                            hostModel = it
+                                            gameHostedOrProgressList.add(it)
+
                                             return@filter false
                                         }
                                         return@filter true
                                     }
                                 } as MutableList<GameDetailsModelClass>?)!!
-                            if (hostModel != null)
-                                list.add(0, hostModel!!)
-                            profilecoinsAdapter.submitList(list.filter { it.game_status=="0" || isUserHostOrPlayer(
-                                it
-                            )   //filtering to display game only to host or user if
+                            for (i in gameHostedOrProgressList) {
+
+                                list?.add(0, i)
+
+                            }
+                            profilecoinsAdapter.submitList(list?.filter {
+                                it.game_status == "0" || isUserHostOrPlayer(
+                                    it
+                                )   //filtering to display game only to host or user if
                             })
 
 
@@ -308,6 +351,77 @@ class CoinsFragment : Fragment(R.layout.fragment_coins) {
     }
 
     private fun isUserHostOrPlayer(it: GameDetailsModelClass) =
-        (it.host_id == (activity as MainActivity).getUserId() || it.player_id == (activity as MainActivity).getUserId())
+        (it.host_id == (activity as MainActivity).getUserId() ||
+                it.player_id == (activity as MainActivity).getUserId())
+
+
+    private fun hostLudoGame(id: String, name: String) {
+        (activity as MainActivity).retrofit?.hostAGAme(
+            id, name, selectedCoins.toString()
+        )?.enqueue(object : Callback<UserRegistrationResponseModel> {
+            override fun onFailure(
+                call: Call<UserRegistrationResponseModel>,
+                t: Throwable
+            ) {
+                (activity as MainActivity).binding.progressbar.visibility = View.GONE
+                (activity as MainActivity).showToast(t.toString())
+            }
+
+            override fun onResponse(
+                call: Call<UserRegistrationResponseModel>,
+                response: Response<UserRegistrationResponseModel>
+            ) {
+                if (response.isSuccessful) {
+                    if (response.body()?.status == "1") {
+                        (activity as MainActivity).showToast("Game Hosted Successfully . Please wait till other player joins")
+
+                        getLudoGamesList()
+
+                    } else {
+                        (activity as MainActivity).showToast(response.body()?.message!!)
+                    }
+                } else {
+                    (activity as MainActivity).showToast(response.toString())
+
+                }
+                (activity as MainActivity).binding.progressbar.visibility = View.GONE
+            }
+        })
+    }
+
+
+    private fun hostSnakeGame(id: String, name: String) {
+        (activity as MainActivity).retrofit?.hostAGAme_snake(
+            id, name, selectedCoins.toString()
+        )?.enqueue(object : Callback<UserRegistrationResponseModel> {
+            override fun onFailure(
+                call: Call<UserRegistrationResponseModel>,
+                t: Throwable
+            ) {
+                (activity as MainActivity).binding.progressbar.visibility = View.GONE
+                (activity as MainActivity).showToast(t.toString())
+            }
+
+            override fun onResponse(
+                call: Call<UserRegistrationResponseModel>,
+                response: Response<UserRegistrationResponseModel>
+            ) {
+                if (response.isSuccessful) {
+                    if (response.body()?.status == "1") {
+                        (activity as MainActivity).showToast("Game Hosted Successfully . Please wait till other player joins")
+                        getSnakeGameList()
+                    } else {
+                        (activity as MainActivity).showToast(response.body()?.message!!)
+                    }
+                } else {
+                    (activity as MainActivity).showToast(response.toString())
+
+                }
+                (activity as MainActivity).binding.progressbar.visibility = View.GONE
+            }
+        })
+    }
+
+
 }
 
