@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item android:id="@+id/profile"
-        android:title="Profile"
-        app:showAsAction="always"
-        android:icon="@drawable/profile"/>
 
     <item android:id="@+id/home"
         android:title="Home"
         app:showAsAction="always|withText"
         android:icon="@drawable/chat"/>
 
-    <item android:id="@+id/logout"
-        android:title="Logout"
+    <item android:id="@+id/profile"
+        android:title="Profile"
         app:showAsAction="always"
-
-        android:icon="@drawable/stories"/>
+        android:icon="@drawable/profile"/>
 
     <item android:id="@+id/faq"
         android:title="FAQ"
+        app:showAsAction="always"
+        android:icon="@drawable/rules"/>
+
+    <item android:id="@+id/transaction"
+        android:title="Transaction"
         app:showAsAction="always"
         android:icon="@drawable/rules"/>
 
@@ -26,5 +26,16 @@
         android:title="How to play the game"
         app:showAsAction="always"
         android:icon="@drawable/rules"/>
+
+
+    <item android:id="@+id/logout"
+        android:title="Logout"
+        app:showAsAction="always"
+
+        android:icon="@drawable/stories"/>
+
+
+
+
 
 </menu>

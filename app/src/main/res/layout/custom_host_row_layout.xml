@@ -12,7 +12,7 @@
         app:cardBackgroundColor="@color/purple_200"
         app:cardCornerRadius="20dp"
         app:contentPadding="8dp"
-        android:layout_marginBottom="32dp"
+        android:layout_marginBottom="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -23,13 +23,14 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="8dp"
             android:orientation="horizontal"
-            android:padding="8dp">
+            >
 
             <TextView
                 android:id="@+id/availablecoinsTextView"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:layout_weight="0.8"
+                android:gravity="center_vertical"
                 android:text="50 Coins"
                 android:textColor="@color/white"
                 android:textSize="16sp" />
@@ -37,8 +38,9 @@
             <TextView
                 android:id="@+id/nametextview"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:padding="8dp"
+                android:gravity="center_vertical"
                 android:layout_marginRight="8dp"
                 android:layout_weight="1"
                 android:text="Rebba"
@@ -47,10 +49,11 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/cancelbutton"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:backgroundTint="@color/red"
                 android:text="Cancel"
+                android:layout_weight="1"
                 android:textColor="@color/white"
                 android:textSize="14sp"
                 app:cornerRadius="20dp" />
