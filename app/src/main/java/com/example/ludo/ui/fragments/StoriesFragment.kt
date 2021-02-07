@@ -26,7 +26,7 @@ lateinit var binding:FragmentStoriesBinding
             adapter=adapterr
         }
         (activity as MainActivity).   binding.progressbar.visibility=View.VISIBLE
-        (activity as MainActivity).retrofit?.story()?.enqueue(object : Callback<StoriesModelClass> {
+        (activity as MainActivity).retrofitInterface?.story()?.enqueue(object : Callback<StoriesModelClass> {
             override fun onFailure(call: Call<StoriesModelClass>, t: Throwable) {
                 (activity as MainActivity).apply {
                     binding.progressbar.visibility=View.GONE

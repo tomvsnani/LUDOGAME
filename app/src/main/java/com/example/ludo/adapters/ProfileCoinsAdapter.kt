@@ -7,23 +7,25 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.DrawableCompat
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ludo.utils.Constants
 import com.example.ludo.R
+import com.example.ludo.ResultSealedClass
 import com.example.ludo.data.GameDetailsModelClass
 import com.example.ludo.data.UserRegistrationResponseModel
 import com.example.ludo.databinding.CustomHostRowLayoutBinding
 import com.example.ludo.databinding.PlayerUsernameDialogLayoutBinding
 import com.example.ludo.databinding.ProfileCoinsRecyclerRowLayoutBinding
 import com.example.ludo.ui.activities.MainActivity
-import com.example.ludo.ui.fragments.CoinsFragment
+import com.example.ludo.ui.fragments.coinsFragment.CoinsFragment
 import com.example.ludo.ui.fragments.GameMatchingFragment
 import com.example.ludo.ui.fragments.GameResultFragment
+import com.example.ludo.ui.fragments.coinsFragment.CoinsViewModel
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -33,6 +35,14 @@ class ProfileCoinsAdapter(var activity: Activity) :
         GameDetailsModelClass.diff
     ) {
 
+    private lateinit var viewModel: CoinsViewModel
+
+    private lateinit var coinsFragment: CoinsFragment
+
+    public fun setViewModel(viewModel: CoinsViewModel, coinsFragment: CoinsFragment) {
+        this.coinsFragment = coinsFragment
+        this@ProfileCoinsAdapter.viewModel = viewModel
+    }
 
     inner class ProfileCoinsViewHolder(var view: View) : RecyclerView.ViewHolder(view) {
         var binding =
@@ -45,7 +55,10 @@ class ProfileCoinsAdapter(var activity: Activity) :
                 if (!isGameStarted(currentList[adapterPosition]))
                     displayEnterUsernameDialogForPlayer()
                 else {
-                    openGameMatchingFragment(currentList[adapterPosition].id, (activity as MainActivity).getUserId()==currentList[adapterPosition].host_id)
+                    openGameMatchingFragment(
+                        currentList[adapterPosition].id,
+                        (activity as MainActivity).getUserId() == currentList[adapterPosition].host_id
+                    )
                 }
 
 
@@ -68,12 +81,28 @@ class ProfileCoinsAdapter(var activity: Activity) :
             binding.submitButton?.setOnClickListener {
 
                 if (binding.usernameEdittext.text.isNotEmpty()) {
+                    (activity as MainActivity).makeProgressVisible()
 
+                    viewModel.sendUsernameToServer(
+                        (activity as MainActivity).gameType,
+                        (activity as MainActivity).getUserId(),
+                        currentList[adapterPosition].id,
+                        binding.usernameEdittext.text.toString()
+                    ).observe(coinsFragment.viewLifecycleOwner, Observer {
+                        when (it) {
+                            is ResultSealedClass.Success -> {
+                                (activity as MainActivity).makeProgresssHide()
+                                getAllGamesList()
+                                alert?.dismiss()
+                            }
+                            is ResultSealedClass.Failure -> {
+                                (activity as MainActivity).makeProgresssHide()
+                                coinsFragment.handleResponseFailure(it)
+                                alert?.dismiss()
+                            }
+                        }
+                    })
 
-                        if ((activity as MainActivity).gameType == Constants.LUDOGAMETYPE)
-                            send_player_username_to_server_ludo(binding, alert)
-                        else
-                            send_player_username_to_server_snake(binding, alert)
 
                 } else
                     (activity as MainActivity).showToast("Enter your user name")
@@ -97,98 +126,6 @@ class ProfileCoinsAdapter(var activity: Activity) :
 
     }
 
-    private fun ProfileCoinsViewHolder.send_player_username_to_server_ludo(
-        binding: PlayerUsernameDialogLayoutBinding,
-        alert: AlertDialog
-    ) {
-        (activity as MainActivity).retrofit?.playerPlayClickApi(
-            (activity as MainActivity).getUserId(),
-            currentList[adapterPosition].id,
-            binding.usernameEdittext.text.toString()
-        )?.enqueue(object : Callback<UserRegistrationResponseModel> {
-            override fun onFailure(
-                call: Call<UserRegistrationResponseModel>,
-                t: Throwable
-            ) {
-
-                try {
-                    (activity as MainActivity).apply {
-                        this.binding.progressbar.visibility = View.GONE
-                        showToast(t.toString())
-                    }
-                } catch (e: Exception) {
-                    Toast.makeText(activity,e.toString(),Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            override fun onResponse(
-                call: Call<UserRegistrationResponseModel>,
-                response: Response<UserRegistrationResponseModel>
-            ) {
-                try {
-                    if (response.isSuccessful) {
-                        if (response.body()?.status == "1") {
-                            getAllGamesList()
-
-                        } else
-                            (activity as MainActivity).showToast(response.body()?.message!!)
-                    } else {
-                        (activity as MainActivity).showToast(response.toString())
-                    }
-                    alert?.dismiss()
-                } catch (e: Exception) {
-                    Toast.makeText(activity,e.toString(),Toast.LENGTH_SHORT).show()
-                }
-            }
-        })
-    }
-
-
-    private fun ProfileCoinsViewHolder.send_player_username_to_server_snake(
-        binding: PlayerUsernameDialogLayoutBinding,
-        alert: AlertDialog
-    ) {
-        (activity as MainActivity).retrofit?.playerPlayClickApi_snake(
-            (activity as MainActivity).getUserId(),
-            currentList[adapterPosition].id,
-            binding.usernameEdittext.text.toString()
-        )?.enqueue(object : Callback<UserRegistrationResponseModel> {
-            override fun onFailure(
-                call: Call<UserRegistrationResponseModel>,
-                t: Throwable
-            ) {
-                try {
-                    (activity as MainActivity).apply {
-                        this.binding.progressbar.visibility = View.GONE
-                        showToast(t.toString())
-                    }
-                } catch (e: Exception) {
-                    Toast.makeText(activity,e.toString(),Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            override fun onResponse(
-                call: Call<UserRegistrationResponseModel>,
-                response: Response<UserRegistrationResponseModel>
-            ) {
-                try {
-                    if (response.isSuccessful) {
-                        if (response.body()?.status == "1") {
-                            getAllGamesList()
-
-                        } else
-                            (activity as MainActivity).showToast(response.body()?.message!!)
-                    } else {
-                        (activity as MainActivity).showToast(response.toString())
-                    }
-                    alert?.dismiss()
-                } catch (e: Exception) {
-                    Toast.makeText(activity,e.toString(),Toast.LENGTH_SHORT).show()
-                }
-            }
-        })
-    }
-
 
     inner class CustomProfileCoinsViewHolder(var view: View) : RecyclerView.ViewHolder(view) {
         var binding =
@@ -200,13 +137,42 @@ class ProfileCoinsAdapter(var activity: Activity) :
         init {
             (binding)?.cancelbutton?.setOnClickListener {
                 if (!isGameStarted(currentList[adapterPosition])) {
-                    if ((activity as MainActivity).gameType == Constants.LUDOGAMETYPE)
-                        cancelTheHostedLudoGame()
-                    else
-                        cancelTheHostedSnakeGame()
+                    (activity as MainActivity).makeProgressVisible()
+                 var a=   viewModel.cancelGame(
+                        (activity as MainActivity).gameType, (activity as MainActivity).getUserId(),
+                        currentList[adapterPosition].id
+                    )
+                    a.observe(coinsFragment.viewLifecycleOwner,
+                        object :Observer<ResultSealedClass<UserRegistrationResponseModel>> {
+                            override fun onChanged(t: ResultSealedClass<UserRegistrationResponseModel>?) {
+                                a.removeObserver(this)
+                                when (t) {
+                                    is ResultSealedClass.Failure -> {
+                                        (activity as MainActivity).makeProgresssHide()
+                                        coinsFragment.handleResponseFailure(t)
+                                    }
+                                    is ResultSealedClass.Success -> {
+                                        (activity as MainActivity).makeProgresssHide()
+
+                                        (activity as MainActivity).displayGeneralAlertDialog(
+                                            activity.getString(R.string.game_cancelled_dialog),
+                                            R.drawable.oops
+                                        )
+
+                                        getAllGamesList()
+                                    }
+                                }
+
+
+                            }
+                        })
+
 
                 } else {
-                    openGameMatchingFragment(currentList[adapterPosition].id, (activity as MainActivity).getUserId()==currentList[adapterPosition].host_id)
+                    openGameMatchingFragment(
+                        currentList[adapterPosition].id,
+                        (activity as MainActivity).getUserId() == currentList[adapterPosition].host_id
+                    )
 
                 }
 
@@ -218,39 +184,27 @@ class ProfileCoinsAdapter(var activity: Activity) :
     }
 
     fun openGameMatchingFragment(id: String, isHost: Boolean) {
-        if((activity as MainActivity).gameType== Constants.LUDOGAMETYPE)
-        checkIfPlayerSubittedResultLudo(id, isHost)
-        else
-            checkIfPlayerSubittedResultSnake(id, isHost)
-    }
-
-    private fun checkIfPlayerSubittedResultLudo(id: String, isHost: Boolean) {
-        (activity as MainActivity).binding.progressbar.visibility = View.VISIBLE
-        (activity as MainActivity).retrofit?.checkIfPlayerSubmittedResult(
+        (activity as MainActivity).makeProgressVisible()
+        viewModel.checkIfUserSubmittedResult(
+            (activity as MainActivity).gameType,
             id,
             (activity as MainActivity).getUserId()
-        )?.enqueue(object : Callback<UserRegistrationResponseModel> {
-            override fun onFailure(call: Call<UserRegistrationResponseModel>, t: Throwable) {
-                (activity as MainActivity).apply {
-                    showToast(t.toString())
-                    binding.progressbar.visibility = View.GONE
-                }
-            }
+        ).observe(coinsFragment.viewLifecycleOwner, Observer {
+            when (it) {
+                is ResultSealedClass.Failure -> {
+                    (activity as MainActivity).makeProgresssHide()
+                    coinsFragment.handleResponseFailure(it)
 
-            override fun onResponse(
-                call: Call<UserRegistrationResponseModel>,
-                response: Response<UserRegistrationResponseModel>
-            ) {
-                if (response.isSuccessful) {
-                    if (response.body()?.status == "1") {
+                }
+                is ResultSealedClass.Success -> {
+                    (activity as MainActivity).makeProgresssHide()
+                    if (it.data?.status == "1") {
                         (activity as MainActivity).loadFragment(GameResultFragment().apply {
                             arguments = Bundle().apply {
                                 putString(Constants.GAMEIDCONSTANT, id)
                                 putBoolean(Constants.ISHOSTCONSTANT, isHost)
                             }
                         })
-
-
                     } else {
                         (activity as MainActivity).loadFragment(GameMatchingFragment().apply {
                             arguments = Bundle().apply {
@@ -259,60 +213,12 @@ class ProfileCoinsAdapter(var activity: Activity) :
                             }
                         })
                     }
-                } else {
-                    (activity as MainActivity).showToast(response.toString())
-                }
 
-                (activity as MainActivity).binding.progressbar.visibility = View.GONE
+                }
             }
         })
-    }
 
 
-
-
-    private fun checkIfPlayerSubittedResultSnake(id: String, isHost: Boolean) {
-        (activity as MainActivity).binding.progressbar.visibility = View.VISIBLE
-        (activity as MainActivity).retrofit?.checkIfPlayerSubmittedResult_snake(
-            id,
-            (activity as MainActivity).getUserId()
-        )?.enqueue(object : Callback<UserRegistrationResponseModel> {
-            override fun onFailure(call: Call<UserRegistrationResponseModel>, t: Throwable) {
-                (activity as MainActivity).apply {
-                    showToast(t.toString())
-                    binding.progressbar.visibility = View.GONE
-                }
-            }
-
-            override fun onResponse(
-                call: Call<UserRegistrationResponseModel>,
-                response: Response<UserRegistrationResponseModel>
-            ) {
-                if (response.isSuccessful) {
-                    if (response.body()?.status == "1") {
-                        (activity as MainActivity).loadFragment(GameResultFragment().apply {
-                            arguments = Bundle().apply {
-                                putString(Constants.GAMEIDCONSTANT, id)
-                                putBoolean(Constants.ISHOSTCONSTANT, isHost)
-                            }
-                        })
-
-
-                    } else {
-                        (activity as MainActivity).loadFragment(GameMatchingFragment().apply {
-                            arguments = Bundle().apply {
-                                putString(Constants.GAMEIDCONSTANT, id)
-                                putBoolean(Constants.ISHOSTCONSTANT, isHost)
-                            }
-                        })
-                    }
-                } else {
-                    (activity as MainActivity).showToast(response.toString())
-                }
-
-                (activity as MainActivity).binding.progressbar.visibility = View.GONE
-            }
-        })
     }
 
 
@@ -320,100 +226,19 @@ class ProfileCoinsAdapter(var activity: Activity) :
 
 
 
-    private fun CustomProfileCoinsViewHolder.cancelTheHostedLudoGame() {
-        (activity as MainActivity).binding.progressbar.visibility = View.VISIBLE
-        (activity as MainActivity).retrofit?.cancelHostApi(
-            (activity as MainActivity).getUserId(),
-            currentList[adapterPosition].id
-        )?.enqueue(
-            object : Callback<UserRegistrationResponseModel> {
-                override fun onFailure(
-                    call: Call<UserRegistrationResponseModel>,
-                    t: Throwable
-                ) {
-                    (activity as MainActivity).binding.progressbar.visibility =
-                        View.GONE
-                    (activity as MainActivity).showToast(t.toString())
-                }
-
-                override fun onResponse(
-                    call: Call<UserRegistrationResponseModel>,
-                    response: Response<UserRegistrationResponseModel>
-                ) {
-                    if (response.isSuccessful) {
-                        if (response.body()?.status == "1") {
-
-                            getAllGamesList()
-                        } else {
-                            (activity as MainActivity).showToast(response.body()?.message!!)
-                        }
-
-                    } else {
-                        (activity as MainActivity).showToast(response.toString())
-                    }
-                    (activity as MainActivity).showToast(response.toString())
-                    (activity as MainActivity).binding.progressbar.visibility =
-                        View.GONE
-                }
-            }
-        )
-
-    }
-
-
-    private fun CustomProfileCoinsViewHolder.cancelTheHostedSnakeGame() {
-        (activity as MainActivity).binding.progressbar.visibility = View.VISIBLE
-        (activity as MainActivity).retrofit?.cancelHostApi_snake(
-            (activity as MainActivity).getUserId(),
-            currentList[adapterPosition].id
-        )?.enqueue(
-            object : Callback<UserRegistrationResponseModel> {
-                override fun onFailure(
-                    call: Call<UserRegistrationResponseModel>,
-                    t: Throwable
-                ) {
-                    (activity as MainActivity).binding.progressbar.visibility =
-                        View.GONE
-                    (activity as MainActivity).showToast(t.toString())
-                }
-
-                override fun onResponse(
-                    call: Call<UserRegistrationResponseModel>,
-                    response: Response<UserRegistrationResponseModel>
-                ) {
-                    if (response.isSuccessful) {
-                        if (response.body()?.status == "1") {
-
-                            getAllGamesList()
-                        } else {
-                            (activity as MainActivity).showToast(response.body()?.message!!)
-                        }
-
-                    } else {
-                        (activity as MainActivity).showToast(response.toString())
-                    }
-                    (activity as MainActivity).showToast(response.toString())
-                    (activity as MainActivity).binding.progressbar.visibility =
-                        View.GONE
-                }
-            }
-        )
-
-    }
 
 
     private fun getAllGamesList() {
-        if ((activity as MainActivity).gameType == Constants.LUDOGAMETYPE)
 
+        (activity as MainActivity).makeProgressVisible()
+        try {
             ((activity as MainActivity).supportFragmentManager.findFragmentById(
                 R.id.container
-            ) as CoinsFragment).getLudoGamesList()
-        else
+            ) as CoinsFragment).getGamesList()
+        } catch (e: Exception) {
+        }
 
 
-            ((activity as MainActivity).supportFragmentManager.findFragmentById(
-                R.id.container
-            ) as CoinsFragment).getSnakeGameList()
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -484,7 +309,7 @@ class ProfileCoinsAdapter(var activity: Activity) :
 
 
     override fun getItemViewType(position: Int): Int {
-        return if (currentList[position].host_id == (activity as MainActivity).getUserId() && currentList[position].game_status=="0")
+        return if (currentList[position].host_id == (activity as MainActivity).getUserId() && currentList[position].game_status == "0")
             1
         else
             0

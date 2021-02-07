@@ -106,7 +106,7 @@ class GameResultFragment : Fragment(R.layout.fragment_game_result) {
     ) {
         var model1 = model
         (activity as MainActivity).binding.progressbar.visibility = View.VISIBLE
-        (activity as MainActivity).retrofit?.getGameResult(gameId!!)
+        (activity as MainActivity).retrofitInterface?.getGameResult(gameId!!)
             ?.enqueue(object : Callback<GameResultModelClassResponse> {
 
                 override fun onFailure(call: Call<GameResultModelClassResponse>, t: Throwable) {
@@ -157,7 +157,7 @@ class GameResultFragment : Fragment(R.layout.fragment_game_result) {
     ) {
         var model1 = model
         (activity as MainActivity).binding.progressbar.visibility = View.VISIBLE
-        (activity as MainActivity).retrofit?.getGameResult_snake(gameId!!)
+        (activity as MainActivity).retrofitInterface?.getGameResult_snake(gameId!!)
             ?.enqueue(object : Callback<GameResultModelClassResponse> {
 
                 override fun onFailure(call: Call<GameResultModelClassResponse>, t: Throwable) {

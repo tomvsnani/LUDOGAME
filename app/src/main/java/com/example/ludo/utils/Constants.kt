@@ -21,7 +21,7 @@ class Constants() {
 
 
 
-        const val PLAYGAME_API="api/playgame"
+        const val PLAYGAME_API="api/joingame"
 
         const val PLAYERS_DETAILS_AFTER_GAMEMATCH_API="api/playersmatching"
 
@@ -90,6 +90,11 @@ class Constants() {
         const val GET_GAME_RESULT_API_SNAKE="api/snake_gameresult"
 
         const val IS_USER_SUBMITTED_RESULTS_API_SNAKE="api/snake_checkingresult"
+
+
+
+        val NETWORKFAIL = "networkfail"
+        val REQUIREMENTFAIL = "requirementfail"
 
 
 

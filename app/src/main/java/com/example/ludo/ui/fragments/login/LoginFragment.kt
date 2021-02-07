@@ -2,18 +2,20 @@ package com.example.ludo.ui.fragments.login
 
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import androidx.activity.OnBackPressedCallback
 import androidx.core.content.res.ResourcesCompat
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import com.example.ludo.ui.activities.MainActivity
 import com.example.ludo.R
-import com.example.ludo.data.UserModelClass
+import com.example.ludo.ResultSealedClass
 import com.example.ludo.data.UserRegistrationResponseModel
 import com.example.ludo.databinding.FragmentLoginBinding
 import com.example.ludo.ui.fragments.SelectAGameFragment
+import com.example.ludo.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
 import retrofit2.Call
 import retrofit2.Callback
@@ -22,140 +24,168 @@ import retrofit2.Response
 @AndroidEntryPoint
 class LoginFragment : Fragment(R.layout.fragment_login) {
     lateinit var binding: FragmentLoginBinding
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
         binding = FragmentLoginBinding.bind(view)
 
+        val viewmodel by viewModels<LoginViewModel>()
+
+        setUpClickListeners(viewmodel)
+
+        addBackPressedHandler()
+
+        setUpToolBar()
+
+        super.onViewCreated(view, savedInstanceState)
+    }
+
+
+
+    private fun setUpToolBar() {
+        (activity as? MainActivity)?.setUpFragmentsToolbarProperties(
+            resources.getString(R.string.app_name),
+            true, null
+        )
+    }
+
+    private fun setUpClickListeners(viewmodel: LoginViewModel) {
         binding.sednooverifyotpButton.setOnClickListener {
-            if (!binding.sednooverifyotpButton.text.toString().toLowerCase().contains("verify"))
-                sendOtpForLogin()
-            else {
-                verifyOtp()
+
+            if (!binding.sednooverifyotpButton.text.toString().toLowerCase().contains("verify")) {
+
+                sendOtp(viewmodel)
+
+
+            } else {
+
+                verifyOtp(viewmodel)
+
             }
         }
+    }
 
+    private fun addBackPressedHandler() {
         activity?.onBackPressedDispatcher?.addCallback(viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
                     activity?.finish()
                 }
             })
-
-        (activity as? MainActivity)?.setUpFragmentsToolbarProperties(
-            resources.getString(R.string.app_name),
-            true, null
-        )
-
-        super.onViewCreated(view, savedInstanceState)
     }
 
-    private fun verifyOtp() {
-        (activity as? MainActivity)?.binding?.progressbar?.visibility = View.VISIBLE
+
+    private fun sendOtp(viewmodel: LoginViewModel) {
         if (areFieldsValid()) {
-            (activity as? MainActivity)?.retrofit?.verifyOtp(
-                "91${binding.mobilenumberEditText.text.toString()}",
+            (activity as MainActivity).makeProgressVisible()
+
+            viewmodel.loginUser(
+                binding.mobilenumberEditText.text.toString(),
+                binding.usernameEditText.text.toString()
+            ).observe(viewLifecycleOwner, Observer { it1 ->
+
+                (activity as MainActivity).makeProgresssHide()
+
+                when (it1) {
+                    is ResultSealedClass.Success -> {
+
+
+                        handleOtpSentSuccess()
+                    }
+
+                    is ResultSealedClass.Failure -> {
+                        handleResponseFailure(it1)
+
+                    }
+
+                }
+
+            })
+        } else
+            (activity as MainActivity).showToast("Please enter all fields with valid data")
+    }
+
+    private fun handleResponseFailure(it1: ResultSealedClass.Failure<UserRegistrationResponseModel>) {
+        try {
+            if (it1.status == Constants.NETWORKFAIL) {
+                (activity as MainActivity).showToast(it1.throwable.toString())
+            } else {
+                it1.message?.let { it2 ->
+                    (activity as MainActivity).showToast(
+                        it2
+                    )
+                }
+            }
+        } catch (e: Exception) {
+
+
+        }
+    }
+
+    private fun handleOtpSentSuccess() {
+        (activity as? MainActivity)?.let {
+
+            binding.sednooverifyotpButton.text = "Verify Otp"
+            binding.apply {
+                pinView.visibility = View.VISIBLE
+
+
+                beforeOtpConstraint.visibility = View.GONE
+
+
+                afterOtpConstraint.visibility = View.VISIBLE
+
+                usernametextview.text = usernameEditText.text
+                mobilenumbertextview.text = mobilenumberEditText.text
+            }
+
+        }
+    }
+
+    private fun verifyOtp(viewmodel: LoginViewModel) {
+        (activity as? MainActivity)?.makeProgressVisible()
+        if (areFieldsValid() && binding.pinView.text.toString().isNotEmpty()) {
+
+            viewmodel.verifyOtp(
+                binding.mobilenumberEditText.text.toString(),
                 binding.pinView.text.toString()
-            )?.enqueue(object : Callback<UserRegistrationResponseModel> {
-                override fun onFailure(call: Call<UserRegistrationResponseModel>, t: Throwable) {
-                    (activity as? MainActivity)?.showToast(t.toString())
-                    (activity as? MainActivity)?.binding?.progressbar?.visibility = View.GONE
-                }
+            ).observe(
+                viewLifecycleOwner, Observer { resultSealedClass ->
+                    try {
+                        when (resultSealedClass) {
+                            is ResultSealedClass.Success -> {
+                                handleOtpVerifiedresponse(resultSealedClass)
 
-                override fun onResponse(
-                    call: Call<UserRegistrationResponseModel>,
-                    response: Response<UserRegistrationResponseModel>
-                ) {
-                    if (response.isSuccessful) {
-                        (activity as? MainActivity)?.let {
-                            it.binding.progressbar.visibility = View.GONE
-                            if (response.body()?.status == "1") {
+                            }
 
-                                it.showToast("Otp Verified")
-                                it.sessionManageMent(response.body()?.data!!)
-                                it.getUserCoins()
-                                it.loadFragment(SelectAGameFragment(), true, "home")
-
-                            } else {
-                                (activity as? MainActivity)?.showToast(response.body()?.message!!)
+                            is ResultSealedClass.Failure -> {
+                                handleResponseFailure(resultSealedClass)
                             }
                         }
-                    } else {
-                        (activity as? MainActivity)?.showToast(response.toString())
-                        (activity as? MainActivity)?.binding?.progressbar?.visibility = View.GONE
+                    } catch (e: Exception) {
+
                     }
                 }
-            })
-        }
-    }
-
-    private fun sendOtpForLogin() {
-        (activity as? MainActivity)?.binding?.progressbar?.visibility = View.VISIBLE
-        if (areFieldsValid()) {
-            (activity as? MainActivity)?.retrofit?.login(
-                UserModelClass(
-                    phone_number = "91${binding.mobilenumberEditText.text.toString()}",
-                    username = binding.usernameEditText.text.toString()
-
-                )
-            )?.enqueue(object : Callback<UserRegistrationResponseModel> {
-                override fun onFailure(
-                    call: Call<UserRegistrationResponseModel>,
-                    t: Throwable
-                ) {
-                    (activity as? MainActivity)?.let { it.showToast(t.toString()) }
-                }
-
-                override fun onResponse(
-                    call: Call<UserRegistrationResponseModel>,
-                    response: Response<UserRegistrationResponseModel>
-                ) {
-                    if (response.isSuccessful) {
-
-                        if (response.body()?.status == "1") {
-                            (activity as? MainActivity)?.let {
-                                it.showToast(response.body()?.message!!)
-                                binding.sednooverifyotpButton.text = "Verify Otp"
-                                binding.apply {
-                                    pinView.visibility = View.VISIBLE
+            )
 
 
-                                   beforeOtpConstraint.visibility=View.GONE
-
-
-                                   afterOtpConstraint.visibility=View.VISIBLE
-
-                                    usernametextview.text = usernameEditText.text
-                                    mobilenumbertextview.text = mobilenumberEditText.text
-                                }
-                                it.binding.progressbar.visibility = View.GONE
-                            }
-
-                        } else {
-                            response.body()?.message?.let { it1 ->
-                                (activity as? MainActivity)?.let {
-                                    it.binding.progressbar.visibility =
-                                        View.GONE
-                                    (activity as? MainActivity)?.showToast(
-                                        it1
-                                    )
-                                }
-                            }
-                        }
-
-                    } else {
-                        (activity as? MainActivity)?.binding?.progressbar?.visibility = View.GONE
-                        Log.d("Failedd", response.toString())
-                    }
-                }
-            })
         } else {
-            (activity as? MainActivity)?.showToast("Please enter all fields")
+            (activity as MainActivity).showToast("Please enter all required fields")
         }
     }
+
+    private fun handleOtpVerifiedresponse(resultSealedClass: ResultSealedClass.Success<UserRegistrationResponseModel>) {
+        (activity as MainActivity).let {
+            it.showToast("Otp Verified")
+            it.sessionManageMent(resultSealedClass.data?.data)
+            it.loadFragment(SelectAGameFragment(), true, "home")
+        }
+    }
+
 
     private fun areFieldsValid(): Boolean {
         return binding.let {
-            it.usernameEditText.text.isNotEmpty() && it.mobilenumberEditText.text.isNotEmpty()
+            it.usernameEditText.text.isNotEmpty() && it.mobilenumberEditText.text.isNotEmpty() && it.mobilenumberEditText.text.toString().length == 10
         }
     }
 

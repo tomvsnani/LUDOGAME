@@ -47,7 +47,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
                     .compress(Bitmap.CompressFormat.PNG, 100, stream)
 
 
-                (activity as MainActivity).retrofit?.updateProfile(
+                (activity as MainActivity).retrofitInterface?.updateProfile(
                     UserModelClass(
                         id = preferences?.getString(Constants.USERIDCONSTANT, "")!!,
                         username = preferences?.getString(Constants.USERNAMECONSTANT, "")!!, email =
@@ -112,7 +112,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             binding.changeprofilepiccardview.visibility = View.GONE
 
             (activity as MainActivity).binding.progressbar.visibility = View.VISIBLE
-            (activity as MainActivity).retrofit?.getProfileData((activity as MainActivity).getUserId())
+            (activity as MainActivity).retrofitInterface?.getProfileData((activity as MainActivity).getUserId())
                 ?.enqueue(
                     object : Callback<GameMatchedPlayerDetailsModelClass> {
                         override fun onFailure(

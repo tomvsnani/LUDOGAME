@@ -78,4 +78,25 @@ Refunded  Back to your Wallet
 GAME user name\n\n(OPEN LUDO KING APP EDIT
 USERNAME NAME AND ENTER
 IT BELOW)\n\n</string>
+
+    <string name="game_placed_successfully_dialog">Your game is placed
+successfully…! Please
+wait till Player comes</string>
+
+
+    <string name="dont_have_enough_coins_dialog">SORRY YOU DON\'T HAVE
+     A ENOUGH COINS
+PLEASE ADD AND PLAY</string>
+
+    <string name="game_cancelled_dialog">Game is Cancelled and
+amount Added back to
+your wallet.. Place a new
+Bet
+</string>
+
+
+    <string name="check_before_submitting_game_code">BEFORE SUBMITTING THE
+    ROOM CODE PLEASE
+   ONCE AGAIN CHECK</string>
+
 </resources>

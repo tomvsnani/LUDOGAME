@@ -40,6 +40,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -49,12 +50,11 @@ class MainActivity : AppCompatActivity() {
     var isGamesultSubmitted = false
     var gameFeeMutableList: MutableLiveData<String> = MutableLiveData()
     var profileDetailsLiveData: MutableLiveData<String> = MutableLiveData()
-
-
     var gameDetailsLiveData: MutableLiveData<List<Data>> = MutableLiveData()
 
-    @JvmField
-    var retrofit: RetrofitInterface? = null
+
+    @Inject
+   lateinit var retrofitInterface: RetrofitInterface
 
     var isHost = false
 
@@ -64,7 +64,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
-        retrofit = getRetrofit()
+        retrofitInterface = getRetrofit()
         setContentView(binding.root)
 
 
@@ -102,10 +102,12 @@ class MainActivity : AppCompatActivity() {
             "5abd7a5e-e73d-4087-8f61-e4b8c55011d3",
             "0f5d7ac8-467a-4475-9403-043f7f092c5a"
         )
-        config.setDomain("msdk.in.freshchat.com")
+        config.domain = "msdk.in.freshchat.com"
         Freshchat.getInstance(applicationContext).init(config)
 
         setUpToolBar()
+
+
 
 
         binding.bottomNav.setOnNavigationItemSelectedListener {
@@ -122,17 +124,28 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+
+
+    fun makeProgressVisible() {
+        binding.progressbar.visibility = View.VISIBLE
+    }
+
+    fun makeProgresssHide() {
+        binding.progressbar.visibility = View.GONE
+    }
+
+
     fun getUserId(): String {
         return getPreferences(Activity.MODE_PRIVATE)
             .getString(Constants.USERIDCONSTANT, "")!!
     }
 
-    fun sessionManageMent(userModelClass: UserModelClass) {
+    fun sessionManageMent(userModelClass: UserModelClass?) {
         getPreferences(Activity.MODE_PRIVATE).apply {
-            edit().putString(Constants.USERNAMECONSTANT, userModelClass.username)
-                .putString(Constants.USERPHONECONSTANT, userModelClass.phone_number)
-                .putString(Constants.EMAILCONSTANT, userModelClass.email)
-                .putString(Constants.USERIDCONSTANT, userModelClass.id)
+            edit().putString(Constants.USERNAMECONSTANT, userModelClass?.username)
+                .putString(Constants.USERPHONECONSTANT, userModelClass?.phone_number)
+                .putString(Constants.EMAILCONSTANT, userModelClass?.email)
+                .putString(Constants.USERIDCONSTANT, userModelClass?.id)
                 .apply()
 
         }
@@ -141,7 +154,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        getUserCoins()
+
     }
 
     fun loadFragment(
@@ -277,6 +290,11 @@ class MainActivity : AppCompatActivity() {
         Glide.with(this).load(src).into(binding.alertDialogImageView)
         alert.window?.decorView?.rootView?.setBackgroundColor(Color.TRANSPARENT)
 
+        binding.okbutton.setOnClickListener {
+            alert.dismiss()
+        }
+
+
 //        alert?.window?.setLayout(
 //            resources.displayMetrics.widthPixels / 2,
 //            ViewGroup.LayoutParams.WRAP_CONTENT
@@ -325,7 +343,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun getLudoPlayerDetails(gameId: String?) {
         binding.progressbar.visibility = View.VISIBLE
-        retrofit?.playersGameMatchDetails(gameId!!)?.enqueue(
+        retrofitInterface?.playersGameMatchDetails(gameId!!)?.enqueue(
             object : Callback<GameMatchedPlayerDetailsModelClass> {
                 override fun onFailure(
                     call: Call<GameMatchedPlayerDetailsModelClass>,
@@ -356,48 +374,12 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    fun getUserCoins() {
-        Log.d("inloginfrag", "inlogin")
-        binding.progressbar.visibility = View.VISIBLE
-        retrofit?.getProfileData(getUserId())?.enqueue(
-            object : Callback<GameMatchedPlayerDetailsModelClass> {
-                override fun onFailure(
-                    call: Call<GameMatchedPlayerDetailsModelClass>,
-                    t: Throwable
-                ) {
-                    showToast(t.toString())
-                    binding.progressbar.visibility = View.GONE
-                }
 
-                override fun onResponse(
-                    call: Call<GameMatchedPlayerDetailsModelClass>,
-                    response: Response<GameMatchedPlayerDetailsModelClass>
-                ) {
-                    if (response.isSuccessful) {
-                        if (response?.body()?.status == "1") {
-                            binding.apply {
-                                if (response.body()?.data != null && response.body()?.data?.isNotEmpty()!!) {
-
-
-                                    profileDetailsLiveData.value = response.body()?.data!![0].wallet
-                                }
-                            }
-                        } else {
-                            showToast(response.body()?.message!!)
-                        }
-                    } else {
-                        showToast(response.toString())
-                    }
-                    binding.progressbar.visibility = View.GONE
-                }
-            }
-        )
-    }
 
 
     private fun getSnakePlayerDetails(gameId: String?) {
         binding.progressbar.visibility = View.VISIBLE
-        retrofit?.playersGameMatchDetails_snake(gameId!!)?.enqueue(
+        retrofitInterface?.playersGameMatchDetails_snake(gameId!!)?.enqueue(
             object : Callback<GameMatchedPlayerDetailsModelClass> {
                 override fun onFailure(
                     call: Call<GameMatchedPlayerDetailsModelClass>,

@@ -14,6 +14,7 @@ import android.webkit.MimeTypeMap
 import android.widget.*
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.marginEnd
 import androidx.core.view.marginStart
@@ -24,9 +25,11 @@ import com.example.ludo.*
 import com.example.ludo.data.GameResultModelClassResponse
 import com.example.ludo.data.GameResultModelClassToSend
 import com.example.ludo.data.UserRegistrationResponseModel
+import com.example.ludo.databinding.AlertDialogLayoutBinding
 import com.example.ludo.databinding.FragmentGameMatchingBinding
 import com.example.ludo.ui.activities.MainActivity
 import com.example.ludo.utils.Constants
+import com.google.android.material.button.MaterialButton
 import okhttp3.MediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -220,7 +223,16 @@ class GameMatchingFragment : Fragment(R.layout.fragment_game_matching) {
                                 .startsWith("0") && binding.roomcodeedittext.text.toString()
                                 .toIntOrNull() != null
                         )
-                            sendCode(binding.roomcodeedittext.text.toString(), gameId)
+
+
+
+
+                        createSubmitCodeDialog(gameId)
+
+
+
+
+
                         else
                             (activity as MainActivity).showToast("Please enter a valid room code")
 
@@ -236,6 +248,39 @@ class GameMatchingFragment : Fragment(R.layout.fragment_game_matching) {
             }
 
         }
+    }
+
+    private fun MaterialButton.createSubmitCodeDialog(gameId: String?) {
+        var alert = AlertDialog.Builder(requireContext()).create()
+        var view = layoutInflater.inflate(R.layout.alert_dialog_layout, null, false)
+        alert.setView(view)
+        var binding = AlertDialogLayoutBinding.bind(view)
+        binding.alertDialogTextView.text = getString(R.string.check_before_submitting_game_code)
+        Glide.with(this).load(R.drawable.submitcodeemoji).into(binding.alertDialogImageView)
+        alert.window?.decorView?.rootView?.setBackgroundColor(Color.TRANSPARENT)
+
+        binding.cancelbutton.setOnClickListener {
+            alert.dismiss()
+        }
+
+        binding.cancelbutton.visibility=View.VISIBLE
+
+        binding.okbutton.apply {
+            text = "Submit"
+            setOnClickListener {
+                sendCode(this@GameMatchingFragment.binding.roomcodeedittext.text.toString(), gameId)
+                alert.dismiss()
+            }
+
+        }
+
+
+        //        alert?.window?.setLayout(
+        //            resources.displayMetrics.widthPixels / 2,
+        //            ViewGroup.LayoutParams.WRAP_CONTENT
+        //        )
+
+        alert.show()
     }
 
     private fun performActionsIfUser() {
@@ -286,7 +331,7 @@ class GameMatchingFragment : Fragment(R.layout.fragment_game_matching) {
             (activity as MainActivity).binding.progressbar.visibility = View.VISIBLE
             var preferences = activity?.getPreferences(Activity.MODE_PRIVATE)!!
 
-            (activity as MainActivity).retrofit?.resultsApi(
+            (activity as MainActivity).retrofitInterface?.resultsApi(
                 GameResultModelClassToSend(
                     preferences.getString(
                         Constants.USERIDCONSTANT,
@@ -366,7 +411,7 @@ class GameMatchingFragment : Fragment(R.layout.fragment_game_matching) {
             (activity as MainActivity).binding.progressbar.visibility = View.VISIBLE
             var preferences = activity?.getPreferences(Activity.MODE_PRIVATE)!!
 
-            (activity as MainActivity).retrofit?.resultsApi_snake(
+            (activity as MainActivity).retrofitInterface?.resultsApi_snake(
                 GameResultModelClassToSend(
                     preferences.getString(
                         Constants.USERIDCONSTANT,
@@ -453,7 +498,7 @@ class GameMatchingFragment : Fragment(R.layout.fragment_game_matching) {
 
     private fun getLudoGameCode(gameId: String?, isHost: Boolean) {
         (activity as MainActivity).binding.progressbar.visibility = View.VISIBLE
-        (activity as MainActivity).retrofit?.getGameCodePlayer(gameId!!)?.enqueue(
+        (activity as MainActivity).retrofitInterface?.getGameCodePlayer(gameId!!)?.enqueue(
             object : Callback<UserRegistrationResponseModel> {
                 override fun onFailure(
                     call: Call<UserRegistrationResponseModel>,
@@ -501,7 +546,7 @@ class GameMatchingFragment : Fragment(R.layout.fragment_game_matching) {
 
     private fun getSnakeGameCode(gameId: String?, isHost: Boolean) {
         (activity as MainActivity).binding.progressbar.visibility = View.VISIBLE
-        (activity as MainActivity).retrofit?.getGameCodePlayer_snake(gameId!!)?.enqueue(
+        (activity as MainActivity).retrofitInterface?.getGameCodePlayer_snake(gameId!!)?.enqueue(
             object : Callback<UserRegistrationResponseModel> {
                 override fun onFailure(
                     call: Call<UserRegistrationResponseModel>,
@@ -565,7 +610,7 @@ class GameMatchingFragment : Fragment(R.layout.fragment_game_matching) {
 
     private fun sendLudoGameCode(toString: String, gameId: String?) {
         (activity as MainActivity).binding.progressbar.visibility = View.VISIBLE
-        (activity as MainActivity).retrofit?.submitGameCodeHost(
+        (activity as MainActivity).retrofitInterface?.submitGameCodeHost(
             gameCode = toString,
             gameId = gameId!!
         )?.enqueue(
@@ -602,7 +647,7 @@ class GameMatchingFragment : Fragment(R.layout.fragment_game_matching) {
 
     private fun sendSnakeGameCode(toString: String, gameId: String?) {
         (activity as MainActivity).binding.progressbar.visibility = View.VISIBLE
-        (activity as MainActivity).retrofit?.submitGameCodeHost_snake(
+        (activity as MainActivity).retrofitInterface?.submitGameCodeHost_snake(
             gameCode = toString,
             gameId = gameId!!
         )?.enqueue(
